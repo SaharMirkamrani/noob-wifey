@@ -3,6 +3,7 @@ import { computed, inject } from 'vue'
 import { store, MEALS, isoDay, startOfWeek, addDays, getRecipe, buildShoppingList, inPantry } from '../store.js'
 
 const navigate = inject('navigate')
+const openSettings = inject('openSettings')
 const today = new Date()
 const hour = today.getHours()
 const greeting = computed(() => {
@@ -47,7 +48,7 @@ const plannedThisWeek = computed(() => {
 })
 
 const stats = computed(() => [
-  { emoji: '📖', label: 'Recipes', value: store.recipes.length, to: 'recipes' },
+  { emoji: '📖', label: 'Recipes', value: store.recipes.length, to: 'plan' },
   { emoji: '🍽️', label: 'Meals planned', value: plannedThisWeek.value, to: 'plan' },
   { emoji: '🛒', label: 'Left to buy', value: toBuy.value.length, to: 'shopping' },
   { emoji: '🫙', label: 'Pantry items', value: store.pantry.length, to: 'pantry' }
@@ -125,8 +126,9 @@ const stats = computed(() => [
 
     <!-- quick actions -->
     <div class="quick">
-      <button class="btn btn-primary" @click="navigate('recipes')">＋ Add a recipe</button>
+      <button class="btn btn-primary" @click="navigate('plan')">＋ Add a recipe</button>
       <button class="btn btn-soft" @click="navigate('plan')">🗓️ Plan the week</button>
+      <button class="btn btn-ghost backup-btn" @click="openSettings()">⚙️ Backup &amp; restore</button>
     </div>
   </div>
 </template>

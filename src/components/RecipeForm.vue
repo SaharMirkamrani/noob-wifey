@@ -1,7 +1,7 @@
 <script setup>
 import { ref } from 'vue'
 import Modal from './Modal.vue'
-import { CATEGORIES, catInfo, blankIngredient, blankRecipe, saveRecipe } from '../store.js'
+import { CATEGORIES, catInfo, SLOTS, blankIngredient, blankRecipe, saveRecipe } from '../store.js'
 
 const props = defineProps({ recipe: Object })
 const emit = defineEmits(['close', 'saved'])
@@ -11,6 +11,9 @@ const form = ref(JSON.parse(JSON.stringify(props.recipe || blankRecipe())))
 if (!form.value.ingredients?.length) form.value.ingredients = [blankIngredient()]
 if (!form.value.steps?.length) form.value.steps = ['']
 if (typeof form.value.healthy !== 'boolean') form.value.healthy = false
+if (!form.value.slot || form.value.slot === 'lunch' || form.value.slot === 'dinner') form.value.slot = 'main'
+if (typeof form.value.mealPrep !== 'boolean') form.value.mealPrep = false
+if (typeof form.value.knowHow !== 'boolean') form.value.knowHow = false
 
 const EMOJIS = ['🍽️', '🍝', '🍗', '🥗', '🍲', '🥘', '🍜', '🌮', '🍛', '🥞', '🍳', '🧁', '🍰', '🥪']
 
@@ -45,7 +48,7 @@ function submit() {
   }
   const clean = { ...form.value }
   clean.ingredients = clean.ingredients.filter((i) => i.name.trim())
-  clean.steps = clean.steps.filter((s) => s.trim())
+  clean.steps = clean.knowHow ? [] : clean.steps.filter((s) => s.trim())
   const id = saveRecipe(clean)
   emit('saved', id)
 }
@@ -79,6 +82,22 @@ function submit() {
         </div>
       </div>
 
+      <div class="field">
+        <label>Meal or snack?</label>
+        <div class="slot-picker">
+          <button
+            v-for="s in SLOTS"
+            :key="s.key"
+            type="button"
+            class="slot-opt"
+            :class="{ on: form.slot === s.key }"
+            @click="form.slot = s.key"
+          >
+            {{ s.emoji }} {{ s.label }}
+          </button>
+        </div>
+      </div>
+
       <button
         type="button"
         class="healthy-toggle"
@@ -88,6 +107,17 @@ function submit() {
         <span class="ht-check">{{ form.healthy ? '✓' : '' }}</span>
         <span class="ht-label">🥗 Mark as a healthy recipe</span>
         <span class="ht-hint">{{ form.healthy ? 'Shows a Healthy badge' : 'Tap if it’s wholesome' }}</span>
+      </button>
+
+      <button
+        type="button"
+        class="healthy-toggle prep"
+        :class="{ on: form.mealPrep }"
+        @click="form.mealPrep = !form.mealPrep"
+      >
+        <span class="ht-check">{{ form.mealPrep ? '✓' : '' }}</span>
+        <span class="ht-label">🗓️ Good for meal prep</span>
+        <span class="ht-hint">{{ form.mealPrep ? 'Batch &amp; store it' : 'Tap if it keeps well' }}</span>
       </button>
 
       <div class="field">
@@ -127,16 +157,30 @@ function submit() {
       </div>
       <button class="btn btn-ghost add-line" @click="addIngredient">＋ Add ingredient</button>
 
-      <!-- steps -->
-      <div class="section-label"><span>👩‍🍳 How to make it</span></div>
-      <div class="steps">
-        <div v-for="(step, i) in form.steps" :key="i" class="step-row">
-          <div class="step-num">{{ i + 1 }}</div>
-          <textarea class="textarea" v-model="form.steps[i]" :placeholder="`Step ${i + 1}…`" rows="2"></textarea>
-          <button class="mini-x" @click="removeStep(i)" aria-label="Remove">✕</button>
+      <!-- steps (optional) -->
+      <div class="section-label"><span>👩‍🍳 How to make it</span><small>optional</small></div>
+
+      <button
+        type="button"
+        class="healthy-toggle knowhow"
+        :class="{ on: form.knowHow }"
+        @click="form.knowHow = !form.knowHow"
+      >
+        <span class="ht-check">{{ form.knowHow ? '✓' : '' }}</span>
+        <span class="ht-label">🧠 I already know how to make this</span>
+        <span class="ht-hint">{{ form.knowHow ? 'Steps skipped' : 'Skip the steps' }}</span>
+      </button>
+
+      <template v-if="!form.knowHow">
+        <div class="steps">
+          <div v-for="(step, i) in form.steps" :key="i" class="step-row">
+            <div class="step-num">{{ i + 1 }}</div>
+            <textarea class="textarea" v-model="form.steps[i]" :placeholder="`Step ${i + 1}…`" rows="2"></textarea>
+            <button class="mini-x" @click="removeStep(i)" aria-label="Remove">✕</button>
+          </div>
         </div>
-      </div>
-      <button class="btn btn-ghost add-line" @click="addStep">＋ Add step</button>
+        <button class="btn btn-ghost add-line" @click="addStep">＋ Add step</button>
+      </template>
 
       <p v-if="error" class="err">{{ error }}</p>
     </div>
@@ -192,19 +236,32 @@ function submit() {
 .mini-x:hover { background: var(--terracotta-tint); color: var(--terracotta); }
 .add-line { align-self: flex-start; color: var(--terracotta); font-weight: 700; padding-left: 6px; }
 
+.slot-picker { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+.slot-opt {
+  padding: 9px 6px; border-radius: var(--radius-sm); border: 1.5px solid var(--line);
+  background: var(--white); font-weight: 700; font-size: 0.82rem; color: var(--ink-soft);
+  transition: all 0.15s ease;
+}
+.slot-opt:hover { border-color: var(--terracotta-soft); }
+.slot-opt.on { background: var(--terracotta-tint); border-color: var(--terracotta-soft); color: var(--terracotta); }
+
 .healthy-toggle {
-  display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-radius: var(--radius-sm);
+  display: flex; align-items: center; gap: 12px; padding: 10px 14px; border-radius: var(--radius-sm);
   border: 1.5px solid var(--line); background: var(--white); text-align: left; transition: all 0.15s ease;
 }
 .healthy-toggle:hover { border-color: var(--sage); }
 .healthy-toggle.on { background: var(--sage-tint); border-color: var(--sage); }
+.healthy-toggle.prep.on { background: #f6e7cf; border-color: var(--honey); }
+.healthy-toggle.knowhow.on { background: #e7e6f2; border-color: #9a94c4; }
+.healthy-toggle.knowhow.on .ht-check { background: #9a94c4; border-color: #9a94c4; }
 .ht-check {
-  width: 24px; height: 24px; border-radius: 7px; flex-shrink: 0; display: grid; place-items: center;
-  border: 2px solid var(--line); color: #fff; font-weight: 800; font-size: 0.8rem;
+  width: 22px; height: 22px; border-radius: 7px; flex-shrink: 0; display: grid; place-items: center;
+  border: 2px solid var(--line); color: #fff; font-weight: 800; font-size: 0.78rem;
 }
 .healthy-toggle.on .ht-check { background: var(--sage); border-color: var(--sage); }
+.healthy-toggle.prep.on .ht-check { background: var(--honey); border-color: var(--honey); }
 .ht-label { font-weight: 700; color: var(--ink); }
-.ht-hint { margin-left: auto; font-size: 0.78rem; font-weight: 700; color: var(--ink-soft); }
+.ht-hint { margin-left: auto; font-size: 0.74rem; font-weight: 700; color: var(--ink-soft); }
 
 .photo-row { display: flex; align-items: center; gap: 12px; }
 .photo-preview {

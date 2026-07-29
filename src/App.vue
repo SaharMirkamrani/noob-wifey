@@ -1,15 +1,15 @@
 <script setup>
 import { ref, computed, provide, onMounted, onUnmounted } from 'vue'
 import HomeView from './views/HomeView.vue'
-import RecipesView from './views/RecipesView.vue'
-import MealPlanView from './views/MealPlanView.vue'
+import PlanView from './views/PlanView.vue'
 import ShoppingView from './views/ShoppingView.vue'
 import PantryView from './views/PantryView.vue'
+import ToastHost from './components/ToastHost.vue'
+import SettingsModal from './components/SettingsModal.vue'
 
 const tabs = [
   { key: 'home', label: 'Home', emoji: '🏠', comp: HomeView },
-  { key: 'recipes', label: 'Recipes', emoji: '📖', comp: RecipesView },
-  { key: 'plan', label: 'Meal Plan', emoji: '🗓️', comp: MealPlanView },
+  { key: 'plan', label: 'Plan', emoji: '🗓️', comp: PlanView },
   { key: 'shopping', label: 'Shopping', emoji: '🛒', comp: ShoppingView },
   { key: 'pantry', label: 'Pantry', emoji: '🫙', comp: PantryView }
 ]
@@ -17,7 +17,8 @@ const tabs = [
 const isValid = (key) => tabs.some((t) => t.key === key)
 // keep the active page in the URL hash so a refresh stays put (and back/forward work)
 const fromHash = () => {
-  const key = window.location.hash.replace(/^#\/?/, '')
+  let key = window.location.hash.replace(/^#\/?/, '')
+  if (key === 'recipes') key = 'plan' // recipes + plan merged into one page
   return isValid(key) ? key : 'home'
 }
 
@@ -40,6 +41,10 @@ onUnmounted(() => window.removeEventListener('hashchange', syncFromHash))
 
 // let child views jump between tabs (e.g. "plan a meal" from Home)
 provide('navigate', go)
+
+// settings / backup modal, openable from the sidebar or any view
+const showSettings = ref(false)
+provide('openSettings', () => { showSettings.value = true })
 </script>
 
 <template>
@@ -67,6 +72,7 @@ provide('navigate', go)
       </nav>
 
       <div class="sidebar-foot">
+        <button class="settings-btn" @click="showSettings = true">⚙️ Backup &amp; restore</button>
         <p>Made with 🤍 for busy bees</p>
       </div>
     </aside>
@@ -76,6 +82,9 @@ provide('navigate', go)
         <component :is="activeComp" :key="current" />
       </Transition>
     </main>
+
+    <ToastHost />
+    <SettingsModal v-if="showSettings" @close="showSettings = false" />
 
     <!-- mobile bottom nav -->
     <nav class="tabbar">
@@ -134,7 +143,13 @@ provide('navigate', go)
 .nav-emoji { font-size: 1rem; width: 20px; text-align: center; }
 
 .sidebar-foot { margin-top: auto; padding: 10px 8px; }
-.sidebar-foot p { font-size: 0.68rem; color: var(--ink-soft); font-weight: 600; }
+.settings-btn {
+  display: block; width: 100%; text-align: left; padding: 8px 10px; border-radius: 10px;
+  font-weight: 700; font-size: 0.82rem; color: var(--ink-soft); margin-bottom: 8px;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+.settings-btn:hover { background: rgba(199, 107, 78, 0.07); color: var(--ink); }
+.sidebar-foot p { font-size: 0.68rem; color: var(--ink-soft); font-weight: 600; padding-left: 10px; }
 
 .stage { padding: 22px 26px 60px; min-width: 0; }
 

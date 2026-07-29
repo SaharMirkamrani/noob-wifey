@@ -20,6 +20,48 @@ export const MEALS = [
   { key: 'dinner', label: 'Dinner', emoji: '🌙' }
 ]
 
+// a recipe's slot answers "is this breakfast, a main meal, or a snack?"
+// (lunch & dinner are the same thing — a main — so they're merged)
+export const SLOTS = [
+  { key: 'breakfast', label: 'Breakfast', emoji: '🌅', meal: true },
+  { key: 'main', label: 'Main', emoji: '🍽️', meal: true },
+  { key: 'snack', label: 'Snack', emoji: '🍎', meal: false }
+]
+export const slotInfo = (key) => SLOTS.find((s) => s.key === key) || SLOTS[1]
+
+// authoritative slot + meal-prep suitability for the built-in recipes
+const RECIPE_META = {
+  'creamy tomato pasta': { slot: 'main', mealPrep: false },
+  'honey garlic chicken': { slot: 'main', mealPrep: true },
+  'berry yogurt parfait': { slot: 'breakfast', mealPrep: false },
+  'peanut butter overnight oats': { slot: 'breakfast', mealPrep: true },
+  'cottage cheese toast': { slot: 'breakfast', mealPrep: false },
+  'spinach & feta egg scramble': { slot: 'breakfast', mealPrep: false },
+  'chicken quinoa power bowl': { slot: 'main', mealPrep: true },
+  'tuna white bean salad': { slot: 'main', mealPrep: true },
+  'chickpea avocado wrap': { slot: 'main', mealPrep: false },
+  'sheet-pan salmon & broccoli': { slot: 'main', mealPrep: true },
+  'lemon garlic shrimp & zucchini': { slot: 'main', mealPrep: false },
+  'turkey taco lettuce wraps': { slot: 'main', mealPrep: true },
+  'coconut chickpea curry': { slot: 'main', mealPrep: true },
+  'veggie chicken stir-fry': { slot: 'main', mealPrep: true },
+  'baked egg muffins': { slot: 'breakfast', mealPrep: true },
+  'mason jar chicken salads': { slot: 'main', mealPrep: true },
+  'sweet potato & black bean bowls': { slot: 'main', mealPrep: true },
+  'no-bake energy bites': { slot: 'snack', mealPrep: true },
+  'crispy roasted chickpeas': { slot: 'snack', mealPrep: true },
+  'frozen yogurt bark': { slot: 'snack', mealPrep: true },
+  'hummus & veggie sticks': { slot: 'snack', mealPrep: true }
+}
+const metaFor = (name) => RECIPE_META[(name || '').trim().toLowerCase()]
+
+// fallbacks for user-made recipes (guessed from their tags)
+const PREP_TAGS = ['meal-prep', 'make-ahead', 'batch', 'freezer']
+const slotFromTags = (tags = []) =>
+  tags.includes('snack') ? 'snack'
+    : tags.includes('breakfast') ? 'breakfast' : 'main'
+const prepFromTags = (tags = []) => tags.some((t) => PREP_TAGS.includes(t))
+
 const STORAGE_KEY = 'noob-wifey-v1'
 
 const uid = () => Math.random().toString(36).slice(2, 9) + Date.now().toString(36).slice(-3)
@@ -54,6 +96,8 @@ function seed() {
     servings: 2,
     minutes: 25,
     healthy: false,
+    slot: 'main',
+    mealPrep: false,
     tags: ['cozy', 'quick'],
     ingredients: [
       { id: uid(), name: 'Pasta', qty: '250', unit: 'g', category: 'pantry' },
@@ -79,6 +123,8 @@ function seed() {
     servings: 3,
     minutes: 35,
     healthy: true,
+    slot: 'main',
+    mealPrep: true,
     tags: ['dinner'],
     ingredients: [
       { id: uid(), name: 'Chicken thighs', qty: '6', unit: 'pcs', category: 'meat' },
@@ -109,6 +155,7 @@ function seed() {
 
 // turn a starter-recipe template into a real cookbook recipe (fresh ids)
 function materialize(t) {
+  const meta = metaFor(t.name)
   return {
     id: uid(),
     name: t.name,
@@ -118,6 +165,9 @@ function materialize(t) {
     servings: t.servings,
     minutes: t.minutes,
     healthy: t.healthy !== false,
+    slot: meta ? meta.slot : slotFromTags(t.tags),
+    mealPrep: meta ? meta.mealPrep : prepFromTags(t.tags),
+    knowHow: false,
     tags: [...(t.tags || [])],
     ingredients: t.ingredients.map((i) => ({ ...i, id: uid() })),
     steps: [...t.steps]
@@ -141,11 +191,16 @@ const HEALTHY_SEED_NAMES = new Set(
 function migrate(data) {
   if (!Array.isArray(data.recipes)) return data
 
-  // backfill the `healthy` flag on recipes saved before badges existed
+  // backfill fields added after these recipes were first saved
   for (const r of data.recipes) {
     if (typeof r.healthy !== 'boolean') {
       r.healthy = HEALTHY_SEED_NAMES.has((r.name || '').trim().toLowerCase())
     }
+    const meta = metaFor(r.name)
+    if (!r.slot) r.slot = meta ? meta.slot : slotFromTags(r.tags)
+    if (r.slot === 'lunch' || r.slot === 'dinner') r.slot = 'main' // merged
+    if (typeof r.mealPrep !== 'boolean') r.mealPrep = meta ? meta.mealPrep : prepFromTags(r.tags)
+    if (typeof r.knowHow !== 'boolean') r.knowHow = false
   }
 
   // one-time: add any starter recipes that aren't already in the cookbook.
@@ -186,6 +241,33 @@ watch(
   { deep: true, immediate: true }
 )
 
+/* ---------- backup & restore ---------- */
+export function exportData() {
+  return JSON.stringify({ app: 'noob-wifey', version: 1, exportedAt: new Date().toISOString(), data: store }, null, 2)
+}
+
+// summarise a parsed backup for the confirm step (throws if it's not valid)
+export function inspectBackup(raw) {
+  const parsed = typeof raw === 'string' ? JSON.parse(raw) : raw
+  const data = parsed && parsed.data ? parsed.data : parsed // accept raw store dumps too
+  if (!data || !Array.isArray(data.recipes)) {
+    throw new Error('That file doesn’t look like a Noob Wifey backup.')
+  }
+  const meals = Object.values(data.plan || {}).reduce((n, day) => n + Object.values(day).filter(Boolean).length, 0)
+  return { data, recipes: data.recipes.length, meals, pantry: (data.pantry || []).length }
+}
+
+// replace everything in the live store with a validated backup
+export function restoreData(data) {
+  migrate(data) // fill any fields missing from older backups
+  store.recipes = data.recipes || []
+  store.plan = data.plan || {}
+  store.pantry = data.pantry || []
+  store.boughtExtras = data.boughtExtras || []
+  store.checked = data.checked || {}
+  store.starterPackAdded = data.starterPackAdded !== false
+}
+
 /* ---------- recipe actions ---------- */
 export function saveRecipe(recipe) {
   const clean = {
@@ -215,7 +297,7 @@ export const getRecipe = (id) => store.recipes.find((r) => r.id === id)
 export const blankIngredient = () => ({ id: uid(), name: '', qty: '', unit: '', category: 'produce' })
 export const blankRecipe = () => ({
   name: '', emoji: '🍽️', image: '', igLink: '', servings: 2, minutes: 20,
-  healthy: false, tags: [], ingredients: [blankIngredient()], steps: ['']
+  healthy: false, slot: 'main', mealPrep: false, knowHow: false, tags: [], ingredients: [blankIngredient()], steps: ['']
 })
 
 /* ---------- meal plan actions ---------- */
