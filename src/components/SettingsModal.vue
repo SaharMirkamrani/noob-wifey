@@ -2,6 +2,7 @@
 import { ref, computed } from 'vue'
 import Modal from './Modal.vue'
 import { store, exportData, inspectBackup, restoreData } from '../store.js'
+import { filePath } from '../storage.js'
 import { toast } from '../toast.js'
 
 const emit = defineEmits(['close'])
@@ -57,9 +58,21 @@ function confirmRestore() {
 </script>
 
 <template>
-  <Modal title="Backup & restore" @close="emit('close')">
+  <Modal title="Settings" @close="emit('close')">
     <div class="settings">
-      <p class="lead">Everything in Noob Wifey lives in this browser. Save a backup file now and then so you never lose your cookbook, plan, or pantry. 🤍</p>
+      <p class="lead">Noob Wifey saves everything straight to a file on your computer — no browser storage. Keep an extra backup now and then, just in case. 🤍</p>
+
+      <!-- current data file -->
+      <section class="block">
+        <div class="block-head">
+          <span class="block-emoji">📁</span>
+          <div>
+            <h3>Your data file</h3>
+            <p>Autosaving to <strong class="path">{{ filePath || '—' }}</strong></p>
+            <p>{{ store.recipes.length }} recipes · {{ plannedMeals }} planned meals · {{ store.pantry.length }} pantry items.</p>
+          </div>
+        </div>
+      </section>
 
       <!-- backup -->
       <section class="block">
@@ -117,6 +130,7 @@ function confirmRestore() {
 }
 .block-head h3 { font-size: 1.05rem; margin-bottom: 2px; }
 .block-head p { font-size: 0.84rem; color: var(--ink-soft); font-weight: 600; line-height: 1.4; }
+.path { color: var(--terracotta); word-break: break-all; font-size: 0.82rem; }
 .block .btn { width: 100%; }
 
 .confirm-box { background: #fbeee2; border: 1px solid #f0d3bd; border-radius: var(--radius-sm); padding: 14px; }

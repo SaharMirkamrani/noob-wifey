@@ -1,4 +1,4 @@
-import { reactive, watch, computed } from 'vue'
+import { reactive } from 'vue'
 import { STARTER_RECIPES } from './starterRecipes.js'
 
 /* ---------- ingredient categories (grocery aisles) ---------- */
@@ -62,8 +62,6 @@ const slotFromTags = (tags = []) =>
     : tags.includes('breakfast') ? 'breakfast' : 'main'
 const prepFromTags = (tags = []) => tags.some((t) => PREP_TAGS.includes(t))
 
-const STORAGE_KEY = 'noob-wifey-v1'
-
 const uid = () => Math.random().toString(36).slice(2, 9) + Date.now().toString(36).slice(-3)
 
 /* ---------- date helpers (weeks start Monday) ---------- */
@@ -85,8 +83,8 @@ export const addDays = (d, n) => {
   return x
 }
 
-/* ---------- seed data so it never feels empty on first open ---------- */
-function seed() {
+/* ---------- seed data used when creating a brand-new data file ---------- */
+export function seed() {
   const r1 = {
     id: uid(),
     name: 'Creamy Tomato Pasta',
@@ -215,31 +213,16 @@ function migrate(data) {
   return data
 }
 
-function load() {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY)
-    if (raw) return migrate(JSON.parse(raw))
-  } catch (e) {
-    console.warn('load failed', e)
-  }
-  return seed()
-}
-
-export const store = reactive(load())
-
-watch(
-  store,
-  (val) => {
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(val))
-    } catch (e) {
-      console.warn('save failed', e)
-    }
-  },
-  // immediate so a first-load migration (e.g. back-filling starter recipes)
-  // is persisted right away, not just on the next user edit.
-  { deep: true, immediate: true }
-)
+// The reactive store starts empty; storage.js hydrates it from the user's data
+// file on disk (File System Access API). Persistence is file-based, NOT localStorage.
+export const store = reactive({
+  recipes: [],
+  plan: {},
+  pantry: [],
+  boughtExtras: [],
+  checked: {},
+  starterPackAdded: false
+})
 
 /* ---------- backup & restore ---------- */
 export function exportData() {
@@ -328,6 +311,27 @@ export function removePantry(id) {
 const normalize = (s) => s.trim().toLowerCase()
 export const inPantry = (name) => store.pantry.some((p) => normalize(p.name) === normalize(name))
 
+// suggest recipes based on what's in the pantry — ranked by how much you already have
+export function suggestFromPantry() {
+  const have = new Set(store.pantry.map((p) => normalize(p.name)))
+  return store.recipes
+    .map((r) => {
+      const ings = r.ingredients.filter((i) => i.name && i.name.trim())
+      const haveList = ings.filter((i) => have.has(normalize(i.name)))
+      const missing = ings.filter((i) => !have.has(normalize(i.name)))
+      return {
+        recipe: r,
+        total: ings.length,
+        haveCount: haveList.length,
+        missing,
+        pct: ings.length ? Math.round((haveList.length / ings.length) * 100) : 0,
+        canCook: ings.length > 0 && missing.length === 0
+      }
+    })
+    .filter((s) => s.total > 0 && s.haveCount > 0)
+    .sort((a, b) => b.pct - a.pct || a.missing.length - b.missing.length || a.recipe.name.localeCompare(b.recipe.name))
+}
+
 /* ---------- shopping extras ---------- */
 export function addExtra(name, category = 'other') {
   if (!name.trim()) return
@@ -342,30 +346,65 @@ export function toggleChecked(name) {
 }
 export const isChecked = (name) => !!store.checked[normalize(name)]
 
+/* ---------- shopping priority (how soon you need an ingredient) ---------- */
+export const PRIORITY_META = {
+  high: { key: 'high', label: 'High', emoji: '🔴', rank: 0, color: '#c0563f', tint: '#f6ded3' },
+  medium: { key: 'medium', label: 'Medium', emoji: '🟡', rank: 1, color: '#a9741f', tint: '#f6e7cf' },
+  low: { key: 'low', label: 'Low', emoji: '🟢', rank: 2, color: '#5f6e51', tint: '#e5ebdf' }
+}
+export const priorityRank = (p) => (PRIORITY_META[p] ? PRIORITY_META[p].rank : 1)
+
+const fromIso = (iso) => { const [y, m, d] = iso.split('-').map(Number); return new Date(y, m - 1, d) }
+const daysUntil = (iso) => Math.round((fromIso(iso) - fromIso(isoDay(new Date()))) / 86400000)
+function priorityFor(iso) {
+  const d = daysUntil(iso)
+  if (d <= 1) return 'high' // overdue, today or tomorrow
+  if (d <= 3) return 'medium'
+  return 'low'
+}
+export function neededLabel(iso) {
+  if (!iso) return ''
+  const d = daysUntil(iso)
+  if (d < 0) return 'overdue'
+  if (d === 0) return 'today'
+  if (d === 1) return 'tomorrow'
+  return fromIso(iso).toLocaleDateString(undefined, { weekday: 'short' })
+}
+
 /* ---------- the loop: build shopping list from the planned week ---------- */
 export function buildShoppingList(weekStart) {
-  const map = new Map() // name -> { name, category, qtyParts:[], recipes:Set }
-  for (const id of plannedRecipesForWeek(weekStart)) {
-    const r = getRecipe(id)
-    if (!r) continue
-    for (const ing of r.ingredients) {
-      if (!ing.name || !ing.name.trim()) continue
-      const key = normalize(ing.name)
-      if (!map.has(key)) {
-        map.set(key, { name: ing.name.trim(), category: ing.category || 'other', qtyParts: [], recipes: new Set() })
+  const map = new Map() // name -> { name, category, qtyParts:[], recipes:Set, earliest }
+  for (let i = 0; i < 7; i++) {
+    const iso = isoDay(addDays(weekStart, i))
+    const day = store.plan[iso]
+    if (!day) continue
+    for (const meal of MEALS) {
+      const rid = day[meal.key]
+      if (!rid) continue
+      const r = getRecipe(rid)
+      if (!r) continue
+      for (const ing of r.ingredients) {
+        if (!ing.name || !ing.name.trim()) continue
+        const key = normalize(ing.name)
+        if (!map.has(key)) {
+          map.set(key, { name: ing.name.trim(), category: ing.category || 'other', qtyParts: [], recipes: new Set(), earliest: iso })
+        }
+        const entry = map.get(key)
+        if (ing.qty) entry.qtyParts.push(`${ing.qty}${ing.unit ? ' ' + ing.unit : ''}`)
+        entry.recipes.add(r.name)
+        if (iso < entry.earliest) entry.earliest = iso // soonest day it's needed
       }
-      const entry = map.get(key)
-      if (ing.qty) entry.qtyParts.push(`${ing.qty}${ing.unit ? ' ' + ing.unit : ''}`)
-      entry.recipes.add(r.name)
     }
   }
-  const items = [...map.values()].map((e) => ({
+  return [...map.values()].map((e) => ({
     name: e.name,
     category: e.category,
     qty: e.qtyParts.join(' + '),
     recipes: [...e.recipes],
     have: inPantry(e.name),
-    checked: isChecked(e.name)
+    checked: isChecked(e.name),
+    priority: priorityFor(e.earliest),
+    neededLabel: neededLabel(e.earliest),
+    neededIso: e.earliest
   }))
-  return items
 }

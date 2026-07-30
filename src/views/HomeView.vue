@@ -128,7 +128,7 @@ const stats = computed(() => [
     <div class="quick">
       <button class="btn btn-primary" @click="navigate('plan')">＋ Add a recipe</button>
       <button class="btn btn-soft" @click="navigate('plan')">🗓️ Plan the week</button>
-      <button class="btn btn-ghost backup-btn" @click="openSettings()">⚙️ Backup &amp; restore</button>
+      <button class="btn btn-ghost backup-btn" @click="openSettings()">⚙️ Settings</button>
     </div>
   </div>
 </template>

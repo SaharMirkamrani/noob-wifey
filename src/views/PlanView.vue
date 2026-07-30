@@ -300,6 +300,8 @@ const isHot = (iso, mealKey) => dropKey.value === `${iso}|${mealKey}`
 .sub { color: var(--ink-soft); font-weight: 600; margin-top: 2px; }
 
 .plan-layout { display: grid; grid-template-columns: 296px 1fr; gap: 16px; align-items: start; }
+/* let both columns shrink so inner scroll areas work instead of overflowing the page */
+.cookbook, .schedule { min-width: 0; }
 
 /* ---- cookbook ---- */
 .cookbook { padding: 12px; display: flex; flex-direction: column; gap: 10px; }
@@ -440,8 +442,11 @@ const isHot = (iso, mealKey) => dropKey.value === `${iso}|${mealKey}`
 
 @media (max-width: 860px) {
   .plan-layout { grid-template-columns: 1fr; }
-  .recipe-rail { flex-direction: row; overflow-x: auto; overflow-y: hidden; max-height: none; padding-bottom: 6px; }
+  .recipe-rail { flex-direction: row; overflow-x: auto; overflow-y: hidden; max-height: none; padding-bottom: 6px; min-width: 0; }
   .mini-card { flex: 0 0 auto; width: 190px; }
   .grip { display: none; }
+  .sched-grid { grid-template-columns: 40px repeat(3, 1fr); gap: 4px; }
+  .sg-cell { min-height: 46px; }
+  .filled-name { font-size: 0.6rem; }
 }
 </style>

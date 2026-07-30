@@ -29,6 +29,7 @@
 
 html { font-size: 14px; }
 html, body { height: 100%; }
+body { overflow-x: hidden; } /* safety net: never scroll the page sideways */
 
 body {
   font-family: var(--font-body);

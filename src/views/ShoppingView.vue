@@ -3,8 +3,11 @@ import { ref, computed, inject } from 'vue'
 import {
   store, CATEGORIES, catInfo, MEALS,
   startOfWeek, addDays, buildShoppingList,
-  toggleChecked, isChecked, addExtra, removeExtra, addPantry
+  toggleChecked, isChecked, addExtra, removeExtra, addPantry,
+  PRIORITY_META, priorityRank
 } from '../store.js'
+
+const prio = (p) => PRIORITY_META[p] || PRIORITY_META.medium
 
 const navigate = inject('navigate')
 const weekOffset = ref(0)
@@ -24,14 +27,23 @@ const grouped = computed(() => {
     if (item.have) continue // pantry-aware: hide what you already own
     ;(groups[item.category] ||= []).push(item)
   }
-  // extras
+  // extras (user-added, no planned day → medium priority)
   for (const e of store.boughtExtras) {
-    ;(groups[e.category] ||= []).push({ name: e.name, category: e.category, qty: '', recipes: [], have: false, checked: e.checked, extra: true, id: e.id })
+    ;(groups[e.category] ||= []).push({ name: e.name, category: e.category, qty: '', recipes: [], have: false, checked: e.checked, extra: true, id: e.id, priority: 'medium', neededLabel: '' })
   }
+  // within each aisle: unbought first, then most-urgent, then soonest-needed
+  const sortItems = (a, b) =>
+    Number(a.checked) - Number(b.checked) ||
+    priorityRank(a.priority) - priorityRank(b.priority) ||
+    (a.neededIso || '').localeCompare(b.neededIso || '')
   return CATEGORIES
     .filter((c) => groups[c.key]?.length)
-    .map((c) => ({ ...c, items: groups[c.key].sort((a, b) => Number(a.checked) - Number(b.checked)) }))
+    .map((c) => ({ ...c, items: groups[c.key].sort(sortItems) }))
 })
+
+const urgentCount = computed(() =>
+  fromRecipes.value.filter((i) => !i.have && !i.checked && i.priority === 'high').length
+)
 
 const ownedHidden = computed(() => fromRecipes.value.filter((i) => i.have))
 
@@ -70,7 +82,11 @@ function moveToPantry(item) {
     <header class="page-head">
       <div>
         <h1>Shopping 🛒</h1>
-        <p class="sub">Auto-built from your planned meals. Pantry staples are hidden. 🔁</p>
+        <p class="sub">
+          Sorted by what you need soonest.
+          <span v-if="urgentCount" class="urgent-note">🔴 {{ urgentCount }} to grab now</span>
+          <span v-else>Pantry staples are hidden. 🔁</span>
+        </p>
       </div>
     </header>
 
@@ -117,6 +133,12 @@ function moveToPantry(item) {
             <div class="item-main" @click="tick(item)">
               <span class="item-name">{{ item.name }}</span>
               <span v-if="item.qty" class="item-qty">{{ item.qty }}</span>
+              <span
+                v-if="!item.checked"
+                class="prio-pill"
+                :style="{ color: prio(item.priority).color, background: prio(item.priority).tint }"
+                :title="`${prio(item.priority).label} priority`"
+              >{{ prio(item.priority).emoji }} {{ item.neededLabel || prio(item.priority).label }}</span>
               <span v-if="item.recipes?.length" class="item-for">for {{ item.recipes.join(', ') }}</span>
               <span v-if="item.extra" class="item-for extra-tag">added by you</span>
             </div>
@@ -193,7 +215,9 @@ function moveToPantry(item) {
 .item-main { flex: 1; display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 10px; cursor: pointer; min-width: 0; }
 .item-name { font-weight: 700; }
 .item-qty { color: var(--ink-soft); font-weight: 700; font-size: 0.85rem; }
+.prio-pill { font-size: 0.68rem; font-weight: 800; padding: 2px 8px; border-radius: 999px; white-space: nowrap; text-transform: capitalize; }
 .item-for { color: var(--sage); font-size: 0.75rem; font-weight: 700; width: 100%; }
+.urgent-note { color: #c0563f; font-weight: 800; }
 .extra-tag { color: var(--honey); }
 .row-x { width: 30px; height: 30px; border-radius: 8px; font-size: 0.85rem; color: var(--ink-soft); display: grid; place-items: center; flex-shrink: 0; }
 .row-x:hover { background: var(--terracotta-tint); }
@@ -204,8 +228,8 @@ function moveToPantry(item) {
 .owned-list { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
 
 @media (max-width: 560px) {
-  .page-head h1 { font-size: 1.6rem; }
   .add-extra { flex-wrap: wrap; }
+  .add-extra .bare { flex: 1 1 100%; min-width: 0; padding: 6px; } /* input on its own row */
   .cat-select { flex: 1; }
 }
 </style>

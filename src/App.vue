@@ -6,6 +6,8 @@ import ShoppingView from './views/ShoppingView.vue'
 import PantryView from './views/PantryView.vue'
 import ToastHost from './components/ToastHost.vue'
 import SettingsModal from './components/SettingsModal.vue'
+import StorageGate from './components/StorageGate.vue'
+import { status as storageStatus, init as initStorage } from './storage.js'
 
 const tabs = [
   { key: 'home', label: 'Home', emoji: '🏠', comp: HomeView },
@@ -33,6 +35,7 @@ function go(key) {
 
 const syncFromHash = () => { current.value = fromHash() }
 onMounted(() => {
+  initStorage() // open the data file (or show the connect gate)
   window.addEventListener('hashchange', syncFromHash)
   // normalize the URL on first load (e.g. bare "/" -> "#/home")
   if (!window.location.hash) window.location.hash = `#/${current.value}`
@@ -48,7 +51,9 @@ provide('openSettings', () => { showSettings.value = true })
 </script>
 
 <template>
-  <div class="shell">
+  <StorageGate v-if="storageStatus !== 'ready'" />
+
+  <div v-else class="shell">
     <aside class="sidebar">
       <div class="brand">
         <div class="brand-mark">🍳</div>
@@ -72,7 +77,7 @@ provide('openSettings', () => { showSettings.value = true })
       </nav>
 
       <div class="sidebar-foot">
-        <button class="settings-btn" @click="showSettings = true">⚙️ Backup &amp; restore</button>
+        <button class="settings-btn" @click="showSettings = true">⚙️ Settings</button>
         <p>Made with 🤍 for busy bees</p>
       </div>
     </aside>
@@ -82,9 +87,6 @@ provide('openSettings', () => { showSettings.value = true })
         <component :is="activeComp" :key="current" />
       </Transition>
     </main>
-
-    <ToastHost />
-    <SettingsModal v-if="showSettings" @close="showSettings = false" />
 
     <!-- mobile bottom nav -->
     <nav class="tabbar">
@@ -100,6 +102,10 @@ provide('openSettings', () => { showSettings.value = true })
       </button>
     </nav>
   </div>
+
+  <!-- always mounted so toasts/settings work over the gate too -->
+  <ToastHost />
+  <SettingsModal v-if="showSettings" @close="showSettings = false" />
 </template>
 
 <style scoped>
