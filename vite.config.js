@@ -47,6 +47,8 @@ function dataApi() {
 }
 
 export default defineConfig({
+  // '/noob-wifey/' for the GitHub Pages build (set via BASE_PATH env), '/' locally
+  base: process.env.BASE_PATH || '/',
   plugins: [vue(), dataApi()],
   // host:true exposes the dev server on your local network, so you can open it
   // on your phone at http://<your-mac-ip>:5273 and Add to Home Screen.

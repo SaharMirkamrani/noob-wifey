@@ -8,6 +8,9 @@ createApp(App).mount('#app')
 // Vite's HMR during `npm run dev`).
 if ('serviceWorker' in navigator && import.meta.env.PROD) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js').catch((e) => console.warn('SW registration failed', e))
+    // BASE_URL keeps this working under a subpath (e.g. GitHub Pages /noob-wifey/)
+    navigator.serviceWorker
+      .register(`${import.meta.env.BASE_URL}sw.js`)
+      .catch((e) => console.warn('SW registration failed', e))
   })
 }
