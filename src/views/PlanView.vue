@@ -13,10 +13,14 @@ const navigate = inject('navigate')
 
 /* ---------- cookbook ---------- */
 const search = ref('')
+const slotFilter = ref('all') // 'all' | 'breakfast' | 'main' | 'snack'
 const editing = ref(null)
 const showForm = ref(false)
 const viewing = ref(null)
 const pendingDelete = ref(null)
+
+// order the three planning buckets appear in
+const SLOT_ORDER = ['breakfast', 'main', 'snack']
 
 const slotGradient = (slot) => ({
   breakfast: 'linear-gradient(145deg, #ffe9cf, #f6c9a3)',
@@ -26,10 +30,36 @@ const slotGradient = (slot) => ({
 
 const filtered = computed(() => {
   const q = search.value.trim().toLowerCase()
-  if (!q) return store.recipes
-  return store.recipes.filter(
-    (r) => r.name.toLowerCase().includes(q) || (r.tags || []).some((t) => t.toLowerCase().includes(q))
-  )
+  let list = store.recipes
+  if (q) {
+    list = list.filter(
+      (r) => r.name.toLowerCase().includes(q) || (r.tags || []).some((t) => t.toLowerCase().includes(q))
+    )
+  }
+  if (slotFilter.value !== 'all') list = list.filter((r) => (r.slot || 'main') === slotFilter.value)
+  return list
+})
+
+// group the (filtered) recipes into Breakfast / Mains / Snacks shelves
+const grouped = computed(() => {
+  const by = { breakfast: [], main: [], snack: [] }
+  for (const r of filtered.value) (by[r.slot] || by.main).push(r)
+  return SLOT_ORDER
+    .map((s) => ({ slot: s, info: slotInfo(s), recipes: by[s] }))
+    .filter((g) => g.recipes.length)
+})
+
+// counts per bucket for the filter chips (ignores the slot filter, respects search)
+const slotCounts = computed(() => {
+  const q = search.value.trim().toLowerCase()
+  const base = q
+    ? store.recipes.filter(
+        (r) => r.name.toLowerCase().includes(q) || (r.tags || []).some((t) => t.toLowerCase().includes(q))
+      )
+    : store.recipes
+  const c = { all: base.length, breakfast: 0, main: 0, snack: 0 }
+  for (const r of base) c[r.slot || 'main'] = (c[r.slot || 'main'] || 0) + 1
+  return c
 })
 
 function openNew() { editing.value = null; showForm.value = true }
@@ -136,40 +166,62 @@ const isHot = (iso, mealKey) => dropKey.value === `${iso}|${mealKey}`
           <button class="btn btn-primary cb-new" @click="openNew">＋</button>
         </div>
 
-        <div v-if="filtered.length" class="recipe-rail">
-          <article
-            v-for="r in filtered"
-            :key="r.id"
-            class="mini-card"
-            draggable="true"
-            @dragstart="onDragStart($event, r.id)"
-            @dragend="onDragEnd"
-            @click="viewing = r"
+        <div class="slot-filter">
+          <button class="sfilt" :class="{ on: slotFilter === 'all' }" @click="slotFilter = 'all'">
+            All <span class="sfcount">{{ slotCounts.all }}</span>
+          </button>
+          <button
+            v-for="s in SLOT_ORDER"
+            :key="s"
+            class="sfilt"
+            :class="{ on: slotFilter === s }"
+            @click="slotFilter = s"
           >
-            <div
-              class="mini-thumb"
-              :style="r.image ? { backgroundImage: `url(${r.image})` } : { background: slotGradient(r.slot) }"
-            >
-              <span v-if="!r.image">{{ r.emoji }}</span>
+            {{ slotInfo(s).emoji }} {{ slotInfo(s).label }}s
+            <span class="sfcount">{{ slotCounts[s] }}</span>
+          </button>
+        </div>
+
+        <div v-if="grouped.length" class="recipe-rail">
+          <div v-for="g in grouped" :key="g.slot" class="rail-group">
+            <div class="rail-group-head">
+              <span>{{ g.info.emoji }} {{ g.info.label }}s</span>
+              <span class="rgh-count">{{ g.recipes.length }}</span>
             </div>
-            <div class="mini-info">
-              <div class="mini-name">{{ r.name }}</div>
-              <div class="mini-chips">
-                <span class="mchip" :class="{ snack: slotInfo(r.slot).meal === false }">
-                  {{ slotInfo(r.slot).emoji }} {{ slotInfo(r.slot).label }}
-                </span>
-                <span v-if="r.mealPrep" class="mchip prep" title="Meal prep">🗓️</span>
-                <span v-if="r.healthy" class="mchip healthy" title="Healthy">🥗</span>
-              </div>
+            <div class="rail-group-items">
+              <article
+                v-for="r in g.recipes"
+                :key="r.id"
+                class="mini-card"
+                draggable="true"
+                @dragstart="onDragStart($event, r.id)"
+                @dragend="onDragEnd"
+                @click="viewing = r"
+              >
+                <div
+                  class="mini-thumb"
+                  :style="r.image ? { backgroundImage: `url(${r.image})` } : { background: slotGradient(r.slot) }"
+                >
+                  <span v-if="!r.image">{{ r.emoji }}</span>
+                </div>
+                <div class="mini-info">
+                  <div class="mini-name">{{ r.name }}</div>
+                  <div class="mini-chips">
+                    <span v-if="r.mealPrep" class="mchip prep" title="Meal prep">🗓️ Prep</span>
+                    <span v-if="r.healthy" class="mchip healthy" title="Healthy">🥗 Healthy</span>
+                    <span v-if="r.minutes" class="mchip time">⏱️ {{ r.minutes }}m</span>
+                  </div>
+                </div>
+                <span class="grip">⠿</span>
+              </article>
             </div>
-            <span class="grip">⠿</span>
-          </article>
+          </div>
         </div>
 
         <div v-else class="empty">
           <div class="big">🍅</div>
-          <p>{{ search ? 'No matches.' : 'No recipes yet.' }}</p>
-          <button v-if="!search" class="btn btn-primary" style="margin-top:10px" @click="openNew">＋ Add one</button>
+          <p>{{ search || slotFilter !== 'all' ? 'No matches.' : 'No recipes yet.' }}</p>
+          <button v-if="!search && slotFilter === 'all'" class="btn btn-primary" style="margin-top:10px" @click="openNew">＋ Add one</button>
         </div>
       </section>
 
@@ -313,10 +365,37 @@ const isHot = (iso, mealKey) => dropKey.value === `${iso}|${mealKey}`
 .bare { flex: 1; min-width: 0; border: none; background: none; outline: none; font-size: 0.88rem; }
 .cb-new { flex: 0 0 auto; }
 
-.recipe-rail {
-  display: flex; flex-direction: column; gap: 6px;
-  overflow-y: auto; max-height: calc(100vh - 205px); padding-right: 2px;
+/* slot filter chips */
+.slot-filter { display: flex; flex-wrap: wrap; gap: 5px; }
+.sfilt {
+  display: inline-flex; align-items: center; gap: 5px; padding: 5px 9px; border-radius: 999px;
+  font-size: 0.7rem; font-weight: 800; color: var(--ink-soft);
+  background: var(--cream-2); border: 1.5px solid transparent; transition: all 0.14s ease;
 }
+.sfilt:hover { border-color: var(--terracotta-soft); }
+.sfilt.on { background: var(--terracotta); color: #fff; }
+.sfcount {
+  font-size: 0.62rem; padding: 1px 5px; border-radius: 999px;
+  background: rgba(0, 0, 0, 0.08); color: inherit;
+}
+.sfilt.on .sfcount { background: rgba(255, 255, 255, 0.28); }
+
+.recipe-rail {
+  display: flex; flex-direction: column; gap: 12px;
+  overflow-y: auto; max-height: calc(100vh - 250px); padding-right: 2px;
+}
+.rail-group { display: flex; flex-direction: column; gap: 6px; }
+.rail-group-head {
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  position: sticky; top: 0; z-index: 1; padding: 3px 2px;
+  background: linear-gradient(var(--card) 70%, transparent);
+  font-size: 0.66rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.04em; color: var(--ink-soft);
+}
+.rgh-count {
+  min-width: 18px; text-align: center; padding: 1px 6px; border-radius: 999px;
+  background: var(--cream-2); color: var(--ink-soft); font-size: 0.62rem;
+}
+.rail-group-items { display: flex; flex-direction: column; gap: 6px; }
 .mini-card {
   display: flex; align-items: center; gap: 10px; padding: 7px 8px; border-radius: 12px;
   border: 1.5px solid var(--line); background: var(--card); cursor: grab; user-select: none;
@@ -335,6 +414,7 @@ const isHot = (iso, mealKey) => dropKey.value === `${iso}|${mealKey}`
 .mchip.snack { background: var(--honey); color: #fff; }
 .mchip.prep { background: #f6e7cf; color: #a9741f; }
 .mchip.healthy { background: var(--sage-tint); color: #5f6e51; }
+.mchip.time { background: var(--cream-2); color: var(--ink-soft); }
 .grip { color: #cbb6a5; font-size: 0.85rem; flex-shrink: 0; }
 
 /* ---- schedule ---- */
@@ -442,7 +522,10 @@ const isHot = (iso, mealKey) => dropKey.value === `${iso}|${mealKey}`
 
 @media (max-width: 860px) {
   .plan-layout { grid-template-columns: 1fr; }
-  .recipe-rail { flex-direction: row; overflow-x: auto; overflow-y: hidden; max-height: none; padding-bottom: 6px; min-width: 0; }
+  /* groups stack, but each group's cards become a swipeable shelf */
+  .recipe-rail { max-height: none; overflow-y: visible; gap: 14px; }
+  .rail-group-head { position: static; }
+  .rail-group-items { flex-direction: row; overflow-x: auto; overflow-y: hidden; padding-bottom: 6px; min-width: 0; }
   .mini-card { flex: 0 0 auto; width: 190px; }
   .grip { display: none; }
   .sched-grid { grid-template-columns: 40px repeat(3, 1fr); gap: 4px; }

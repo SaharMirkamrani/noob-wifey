@@ -339,5 +339,179 @@ export const STARTER_RECIPES = [
       'Season with salt.',
       'Cut carrots and cucumber into sticks for dipping.'
     ]
+  },
+
+  /* ---------------- Oven ---------------- */
+  {
+    name: 'Sheet-Pan Lemon Herb Chicken & Veggies', emoji: '🍗', minutes: 40, servings: 4, healthy: true,
+    tags: ['oven', 'sheet-pan', 'dinner', 'meal-prep'],
+    ingredients: [
+      ing('Chicken breast', '4', 'pcs', 'meat'),
+      ing('Broccoli', '2', 'cups', 'produce'),
+      ing('Bell pepper', '2', '', 'produce'),
+      ing('Red onion', '1', '', 'produce'),
+      ing('Garlic', '4', 'cloves', 'produce'),
+      ing('Lemon', '1', '', 'produce'),
+      ing('Olive oil', '3', 'tbsp', 'pantry'),
+      ing('Oregano', '1', 'tsp', 'spices'),
+      ing('Salt', '', '', 'spices'),
+      ing('Black pepper', '', '', 'spices')
+    ],
+    steps: [
+      'Heat oven to 220°C / 425°F and line a large sheet pan.',
+      'Chop broccoli, peppers and onion; spread on the pan with the chicken.',
+      'Drizzle olive oil, squeeze the lemon, add minced garlic, oregano, salt and pepper. Toss to coat.',
+      'Roast 25–30 min until the chicken hits 74°C / 165°F and the veg edges are golden.',
+      'Rest 5 min before slicing. Great cold in lunchboxes too. 💛'
+    ]
+  },
+  {
+    name: 'Baked Salmon with Asparagus', emoji: '🐟', minutes: 20, servings: 2, healthy: true,
+    tags: ['oven', 'quick', 'dinner', 'fish'],
+    ingredients: [
+      ing('Salmon fillets', '2', '', 'meat'),
+      ing('Asparagus', '1', 'bunch', 'produce'),
+      ing('Lemon', '1', '', 'produce'),
+      ing('Garlic', '2', 'cloves', 'produce'),
+      ing('Olive oil', '2', 'tbsp', 'pantry'),
+      ing('Salt', '', '', 'spices'),
+      ing('Black pepper', '', '', 'spices')
+    ],
+    steps: [
+      'Heat oven to 200°C / 400°F and line a tray with parchment.',
+      'Lay salmon and trimmed asparagus on the tray.',
+      'Drizzle olive oil, squeeze lemon, scatter minced garlic, salt and pepper.',
+      'Bake 12–15 min until the salmon flakes easily with a fork.'
+    ]
+  },
+  {
+    name: 'Turkey & Quinoa Stuffed Peppers', emoji: '🫑', minutes: 45, servings: 4, healthy: true,
+    tags: ['oven', 'dinner', 'high-protein', 'meal-prep'],
+    ingredients: [
+      ing('Bell pepper', '4', '', 'produce'),
+      ing('Ground turkey', '400', 'g', 'meat'),
+      ing('Cooked quinoa', '1', 'cup', 'pantry'),
+      ing('Onion', '1', '', 'produce'),
+      ing('Garlic', '3', 'cloves', 'produce'),
+      ing('Canned tomatoes', '1', 'can', 'pantry'),
+      ing('Mozzarella', '1/2', 'cup', 'dairy'),
+      ing('Cumin', '1', 'tsp', 'spices'),
+      ing('Paprika', '1', 'tsp', 'spices'),
+      ing('Salt', '', '', 'spices'),
+      ing('Black pepper', '', '', 'spices')
+    ],
+    steps: [
+      'Heat oven to 190°C / 375°F. Halve the peppers and scoop out the seeds.',
+      'Brown the turkey with chopped onion and garlic in a pan.',
+      'Stir in cooked quinoa, canned tomatoes, cumin, paprika, salt and pepper; simmer 5 min.',
+      'Fill the pepper halves, top with mozzarella, and set in a baking dish.',
+      'Bake 30–35 min until the peppers are tender and the cheese is bubbly.'
+    ]
+  },
+  {
+    name: 'Crispy Baked Falafel', emoji: '🧆', minutes: 35, servings: 4, healthy: true,
+    tags: ['oven', 'vegetarian', 'high-protein', 'meal-prep'],
+    ingredients: [
+      ing('Chickpeas', '2', 'cans', 'pantry'),
+      ing('Onion', '1', '', 'produce'),
+      ing('Garlic', '3', 'cloves', 'produce'),
+      ing('Parsley', '1', 'cup', 'produce'),
+      ing('Flour', '2', 'tbsp', 'pantry'),
+      ing('Cumin', '1', 'tsp', 'spices'),
+      ing('Olive oil', '2', 'tbsp', 'pantry'),
+      ing('Salt', '', '', 'spices')
+    ],
+    steps: [
+      'Heat oven to 200°C / 400°F and line a tray.',
+      'Drain chickpeas well. Pulse chickpeas, onion, garlic, parsley, flour, cumin and salt to a coarse, moldable mix (don’t purée).',
+      'Roll into small balls or patties and set on the tray.',
+      'Brush or spray with olive oil and bake 25–30 min, flipping halfway, until golden and crisp.',
+      'Lovely in wraps with yogurt or hummus.'
+    ]
+  },
+  {
+    name: 'Mediterranean Roasted Veggie & Feta Traybake', emoji: '🥘', minutes: 35, servings: 4, healthy: true,
+    tags: ['oven', 'vegetarian', 'dinner', 'meal-prep'],
+    ingredients: [
+      ing('Zucchini', '2', '', 'produce'),
+      ing('Cherry tomatoes', '2', 'cups', 'produce'),
+      ing('Bell pepper', '2', '', 'produce'),
+      ing('Red onion', '1', '', 'produce'),
+      ing('Chickpeas', '1', 'can', 'pantry'),
+      ing('Feta', '150', 'g', 'dairy'),
+      ing('Garlic', '3', 'cloves', 'produce'),
+      ing('Olive oil', '3', 'tbsp', 'pantry'),
+      ing('Oregano', '1', 'tsp', 'spices'),
+      ing('Salt', '', '', 'spices'),
+      ing('Black pepper', '', '', 'spices')
+    ],
+    steps: [
+      'Heat oven to 200°C / 400°F.',
+      'Chop zucchini, peppers and onion; toss on a tray with tomatoes, drained chickpeas, garlic, olive oil, oregano, salt and pepper.',
+      'Roast 20 min.',
+      'Nestle blocks of feta among the veg and roast another 10 min until soft and golden.',
+      'Lovely over rice, couscous, or with crusty bread.'
+    ]
+  },
+  {
+    name: 'Baked Cod with Tomatoes & Olives', emoji: '🍅', minutes: 25, servings: 2, healthy: true,
+    tags: ['oven', 'fish', 'mediterranean', 'quick'],
+    ingredients: [
+      ing('Cod fillets', '2', '', 'meat'),
+      ing('Cherry tomatoes', '2', 'cups', 'produce'),
+      ing('Olives', '1/3', 'cup', 'pantry'),
+      ing('Garlic', '3', 'cloves', 'produce'),
+      ing('Lemon', '1', '', 'produce'),
+      ing('Olive oil', '2', 'tbsp', 'pantry'),
+      ing('Oregano', '1', 'tsp', 'spices'),
+      ing('Salt', '', '', 'spices'),
+      ing('Black pepper', '', '', 'spices')
+    ],
+    steps: [
+      'Heat oven to 200°C / 400°F.',
+      'Scatter halved tomatoes, olives and sliced garlic in a baking dish; drizzle with half the oil and roast 10 min.',
+      'Nestle the cod on top, drizzle the rest of the oil and the lemon juice, season with oregano, salt and pepper.',
+      'Bake 12–15 min until the cod is opaque and flakes easily.'
+    ]
+  },
+  {
+    name: 'Baked Berry Oatmeal', emoji: '🫐', minutes: 45, servings: 6, healthy: true,
+    tags: ['oven', 'breakfast', 'make-ahead', 'meal-prep'],
+    ingredients: [
+      ing('Rolled oats', '2', 'cups', 'pantry'),
+      ing('Milk', '2', 'cups', 'dairy'),
+      ing('Eggs', '1', '', 'dairy'),
+      ing('Banana', '1', '', 'produce'),
+      ing('Berries', '1 1/2', 'cups', 'produce'),
+      ing('Honey', '3', 'tbsp', 'pantry'),
+      ing('Baking powder', '1', 'tsp', 'pantry'),
+      ing('Cinnamon', '1', 'tsp', 'spices'),
+      ing('Vanilla powder', '1', 'tsp', 'pantry')
+    ],
+    steps: [
+      'Heat oven to 180°C / 350°F and grease a baking dish.',
+      'Whisk milk, egg, mashed banana, honey and vanilla.',
+      'Stir in oats, baking powder and cinnamon, then fold through most of the berries.',
+      'Pour into the dish and scatter the rest of the berries on top.',
+      'Bake 35–40 min until set and golden. Slice into squares — reheats all week.'
+    ]
+  },
+  {
+    name: 'No-Knead Dutch Oven Bread', emoji: '🍞', minutes: 60, servings: 8, healthy: false,
+    tags: ['oven', 'bread', 'yeast', 'weekend'],
+    ingredients: [
+      ing('Bread flour', '3', 'cups', 'pantry'),
+      ing('Instant yeast', '1/2', 'tsp', 'pantry'),
+      ing('Salt', '1 1/2', 'tsp', 'spices'),
+      ing('Water', '1 1/2', 'cups', 'other')
+    ],
+    steps: [
+      'Mix flour, yeast and salt. Add the warm water and stir to a shaggy, sticky dough (no kneading).',
+      'Cover the bowl and leave at room temperature 12–18 hours, until bubbly and doubled.',
+      'Tip onto a floured surface, fold into a rough ball, and rest 30 min while the oven heats.',
+      'Put your lidded pot in the oven and preheat to 230°C / 450°F.',
+      'Carefully drop the dough into the hot pot, cover, and bake 30 min.',
+      'Uncover and bake 12–15 min more until deep golden and it sounds hollow when tapped. Cool before slicing.'
+    ]
   }
 ]

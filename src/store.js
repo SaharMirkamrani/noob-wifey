@@ -51,7 +51,16 @@ const RECIPE_META = {
   'no-bake energy bites': { slot: 'snack', mealPrep: true },
   'crispy roasted chickpeas': { slot: 'snack', mealPrep: true },
   'frozen yogurt bark': { slot: 'snack', mealPrep: true },
-  'hummus & veggie sticks': { slot: 'snack', mealPrep: true }
+  'hummus & veggie sticks': { slot: 'snack', mealPrep: true },
+  // oven batch
+  'sheet-pan lemon herb chicken & veggies': { slot: 'main', mealPrep: true },
+  'baked salmon with asparagus': { slot: 'main', mealPrep: false },
+  'turkey & quinoa stuffed peppers': { slot: 'main', mealPrep: true },
+  'crispy baked falafel': { slot: 'main', mealPrep: true },
+  'mediterranean roasted veggie & feta traybake': { slot: 'main', mealPrep: true },
+  'baked cod with tomatoes & olives': { slot: 'main', mealPrep: false },
+  'baked berry oatmeal': { slot: 'breakfast', mealPrep: true },
+  'no-knead dutch oven bread': { slot: 'breakfast', mealPrep: false }
 }
 const metaFor = (name) => RECIPE_META[(name || '').trim().toLowerCase()]
 

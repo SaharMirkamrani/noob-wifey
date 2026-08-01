@@ -1,9 +1,10 @@
 <script setup>
-import { computed, inject } from 'vue'
+import { computed, inject, ref } from 'vue'
 import { store, MEALS, isoDay, startOfWeek, addDays, getRecipe, buildShoppingList, inPantry } from '../store.js'
 
 const navigate = inject('navigate')
 const openSettings = inject('openSettings')
+const breadOpen = ref(false)
 const today = new Date()
 const hour = today.getHours()
 const greeting = computed(() => {
@@ -124,6 +125,47 @@ const stats = computed(() => [
       </button>
     </div>
 
+    <!-- bread day tutorial -->
+    <section class="bread card">
+      <button class="bread-head" @click="breadOpen = !breadOpen">
+        <span class="bread-emoji">🍞</span>
+        <span class="bread-title">
+          <span class="bread-h">Bread day — easy yeast loaf</span>
+          <span class="bread-sub">No sourdough starter needed. Crusty bakery loaf from your oven.</span>
+        </span>
+        <span class="bread-chev" :class="{ open: breadOpen }">⌄</span>
+      </button>
+
+      <div v-if="breadOpen" class="bread-body">
+        <p class="bread-intro">You have yeast, so skip the week-long sourdough starter — a packet of yeast rises this dough in a couple of hours. It's the most forgiving bread there is. 🤍</p>
+
+        <h4>🧺 What you need</h4>
+        <ul class="bread-list">
+          <li><strong>3 cups</strong> bread flour (or all-purpose)</li>
+          <li><strong>½ tsp</strong> instant yeast</li>
+          <li><strong>1½ tsp</strong> salt</li>
+          <li><strong>1½ cups</strong> warm water</li>
+          <li>A <strong>lidded pot</strong> (Dutch oven / oven-safe pot) — the lid traps steam for the crackly crust</li>
+        </ul>
+
+        <h4>👩‍🍳 The rhythm</h4>
+        <ol class="bread-steps">
+          <li><strong>Mix (2 min):</strong> stir flour, yeast, salt and water into a shaggy, sticky dough. No kneading.</li>
+          <li><strong>Rise (overnight):</strong> cover the bowl, leave on the counter 12–18 h until bubbly and doubled.</li>
+          <li><strong>Shape (2 min):</strong> tip onto floured counter, fold into a rough ball, rest 30 min.</li>
+          <li><strong>Heat the pot:</strong> put the empty lidded pot in the oven, preheat to 230°C / 450°F.</li>
+          <li><strong>Bake:</strong> drop the dough into the hot pot, lid <em>on</em> 30 min → lid <em>off</em> 12–15 min until deep golden and hollow-sounding.</li>
+          <li><strong>Wait:</strong> cool before slicing (hardest step 😅).</li>
+        </ol>
+
+        <div class="bread-tips">
+          💡 <strong>Beginner wins:</strong> use a scale if you have one, a cold kitchen just means a longer rise (not a fail), and loaf #2–3 is where it really clicks.
+        </div>
+
+        <button class="btn btn-soft bread-cta" @click="navigate('plan')">🍞 It's saved as “No-Knead Dutch Oven Bread” → plan it</button>
+      </div>
+    </section>
+
     <!-- quick actions -->
     <div class="quick">
       <button class="btn btn-primary" @click="navigate('plan')">＋ Add a recipe</button>
@@ -182,6 +224,37 @@ const stats = computed(() => [
 .stat-emoji { font-size: 1.2rem; }
 .stat-value { font-family: var(--font-head); font-weight: 700; font-size: 1.25rem; color: var(--terracotta); }
 .stat-label { font-size: 0.68rem; color: var(--ink-soft); font-weight: 700; }
+
+/* bread day tutorial */
+.bread { padding: 0; margin-bottom: 14px; overflow: hidden; }
+.bread-head {
+  width: 100%; display: flex; align-items: center; gap: 12px; padding: 14px 16px; text-align: left;
+  background: linear-gradient(135deg, var(--card), #f6e7cf);
+}
+.bread-emoji { font-size: 1.7rem; flex-shrink: 0; }
+.bread-title { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.bread-h { font-family: var(--font-head); font-weight: 600; font-size: 1.05rem; }
+.bread-sub { color: var(--ink-soft); font-weight: 600; font-size: 0.78rem; }
+.bread-chev { font-size: 1.3rem; color: var(--ink-soft); transition: transform 0.2s ease; flex-shrink: 0; }
+.bread-chev.open { transform: rotate(180deg); }
+
+.bread-body { padding: 4px 16px 16px; }
+.bread-intro { color: var(--ink-soft); font-weight: 600; font-size: 0.86rem; line-height: 1.5; margin: 8px 0 4px; }
+.bread-body h4 { font-family: var(--font-head); font-weight: 600; font-size: 1rem; margin: 16px 0 8px; }
+.bread-list { list-style: none; display: flex; flex-direction: column; gap: 5px; }
+.bread-list li { padding: 7px 12px; border-radius: 9px; background: var(--cream-2); font-size: 0.84rem; font-weight: 600; }
+.bread-steps { padding-left: 4px; list-style: none; counter-reset: b; display: flex; flex-direction: column; gap: 9px; }
+.bread-steps li { position: relative; padding-left: 34px; counter-increment: b; font-size: 0.86rem; line-height: 1.4; }
+.bread-steps li::before {
+  content: counter(b); position: absolute; left: 0; top: -1px;
+  width: 24px; height: 24px; border-radius: 50%; background: #f6e7cf; color: #a9741f;
+  font-weight: 800; display: grid; place-items: center; font-size: 0.78rem;
+}
+.bread-tips {
+  margin-top: 14px; padding: 11px 14px; border-radius: var(--radius-sm);
+  background: var(--sage-tint); color: #5f6e51; font-weight: 600; font-size: 0.82rem; line-height: 1.5;
+}
+.bread-cta { margin-top: 14px; width: 100%; }
 
 .quick { display: flex; gap: 8px; flex-wrap: wrap; }
 
