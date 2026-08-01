@@ -3602,6 +3602,97 @@ export const DEFAULT_DATA = {
         "Finish with green onion and sesame seeds. Great over rice.",
         "Note: the original post kept the full method in its video — these steps are a standard version, tweak to match once you watch it."
       ]
+    },
+    {
+      "id": "n9f31d7r9b",
+      "name": "Sweet Potato & Chocolate Cookies",
+      "emoji": "🍪",
+      "image": "",
+      "igLink": "https://www.instagram.com/p/DYOxIAiuKQ_/",
+      "servings": 8,
+      "minutes": 30,
+      "healthy": true,
+      "slot": "snack",
+      "mealPrep": true,
+      "knowHow": false,
+      "tags": [
+        "snack",
+        "gluten-free",
+        "from-instagram"
+      ],
+      "ingredients": [
+        {
+          "name": "Roasted sweet potato (mashed)",
+          "qty": "300",
+          "unit": "g",
+          "category": "produce",
+          "id": "qm6a6j8r9b"
+        },
+        {
+          "name": "Banana",
+          "qty": "1",
+          "unit": "",
+          "category": "produce",
+          "id": "gsv418br9b"
+        },
+        {
+          "name": "Eggs",
+          "qty": "2",
+          "unit": "",
+          "category": "dairy",
+          "id": "x8ftwecr9b"
+        },
+        {
+          "name": "Cocoa powder",
+          "qty": "30",
+          "unit": "g",
+          "category": "pantry",
+          "id": "ipumerlr9b"
+        },
+        {
+          "name": "Oat flour",
+          "qty": "70",
+          "unit": "g",
+          "category": "pantry",
+          "id": "2ob52nor9b"
+        },
+        {
+          "name": "Salt",
+          "qty": "1",
+          "unit": "pinch",
+          "category": "spices",
+          "id": "1fb2x4ir9b"
+        },
+        {
+          "name": "Dark chocolate chips",
+          "qty": "to taste",
+          "unit": "",
+          "category": "pantry",
+          "id": "8pzczjkr9b"
+        },
+        {
+          "name": "Dark chocolate squares",
+          "qty": "for centers",
+          "unit": "",
+          "category": "pantry",
+          "id": "z118g74r9b"
+        },
+        {
+          "name": "Honey (optional)",
+          "qty": "",
+          "unit": "",
+          "category": "pantry",
+          "id": "vg0bib9r9b"
+        }
+      ],
+      "steps": [
+        "Roast the sweet potato until very soft (roast, don’t boil — keeps it sweet).",
+        "Mash the roasted sweet potato with the banana until smooth.",
+        "Mix in the eggs, cocoa, oat flour and salt to a thick batter, then fold in the chocolate chips.",
+        "Scoop rustic cookies onto a lined tray and press a chocolate square into each centre.",
+        "Bake at 180°C / 350°F for 12–15 min — don’t overbake, so the middles stay fudgy.",
+        "Cool briefly before serving."
+      ]
     }
   ],
   "plan": {
