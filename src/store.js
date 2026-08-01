@@ -1,5 +1,6 @@
 import { reactive } from 'vue'
 import { STARTER_RECIPES } from './starterRecipes.js'
+import { DEFAULT_DATA } from './defaultData.js'
 
 /* ---------- ingredient categories (grocery aisles) ---------- */
 export const CATEGORIES = [
@@ -92,75 +93,13 @@ export const addDays = (d, n) => {
   return x
 }
 
-/* ---------- seed data used when creating a brand-new data file ---------- */
+/* ---------- seed data used when creating a brand-new data file ----------
+ * The default cookbook a fresh install / the deployed site starts with is the
+ * user's 2026-08-01 snapshot, baked into `src/defaultData.js` (photos stripped
+ * to keep the bundle light). We return a deep clone so callers can mutate the
+ * result freely without touching the shared constant. */
 export function seed() {
-  const r1 = {
-    id: uid(),
-    name: 'Creamy Tomato Pasta',
-    emoji: '🍝',
-    image: '',
-    igLink: '',
-    servings: 2,
-    minutes: 25,
-    healthy: false,
-    slot: 'main',
-    mealPrep: false,
-    tags: ['cozy', 'quick'],
-    ingredients: [
-      { id: uid(), name: 'Pasta', qty: '250', unit: 'g', category: 'pantry' },
-      { id: uid(), name: 'Cherry tomatoes', qty: '2', unit: 'cups', category: 'produce' },
-      { id: uid(), name: 'Garlic', qty: '3', unit: 'cloves', category: 'produce' },
-      { id: uid(), name: 'Heavy cream', qty: '100', unit: 'ml', category: 'dairy' },
-      { id: uid(), name: 'Parmesan', qty: '50', unit: 'g', category: 'dairy' },
-      { id: uid(), name: 'Basil', qty: '1', unit: 'handful', category: 'spices' }
-    ],
-    steps: [
-      'Boil pasta in salted water until al dente.',
-      'Sizzle garlic in olive oil, add tomatoes until they burst.',
-      'Pour in cream, simmer, then toss with pasta and parmesan.',
-      'Finish with torn basil. 💛'
-    ]
-  }
-  const r2 = {
-    id: uid(),
-    name: 'Honey Garlic Chicken',
-    emoji: '🍗',
-    image: '',
-    igLink: '',
-    servings: 3,
-    minutes: 35,
-    healthy: true,
-    slot: 'main',
-    mealPrep: true,
-    tags: ['dinner'],
-    ingredients: [
-      { id: uid(), name: 'Chicken thighs', qty: '6', unit: 'pcs', category: 'meat' },
-      { id: uid(), name: 'Honey', qty: '3', unit: 'tbsp', category: 'pantry' },
-      { id: uid(), name: 'Garlic', qty: '4', unit: 'cloves', category: 'produce' },
-      { id: uid(), name: 'Soy sauce', qty: '2', unit: 'tbsp', category: 'pantry' },
-      { id: uid(), name: 'Rice', qty: '1.5', unit: 'cups', category: 'pantry' }
-    ],
-    steps: [
-      'Sear seasoned chicken thighs skin-side down.',
-      'Whisk honey, garlic, soy; pour over chicken.',
-      'Simmer until glossy and cooked through. Serve over rice.'
-    ]
-  }
-  return {
-    recipes: [r1, r2, ...STARTER_RECIPES.map(materialize)],
-    plan: {}, // { 'YYYY-MM-DD': { breakfast: recipeId, lunch: id, dinner: id } }
-    pantry: [
-      { id: uid(), name: 'Olive oil', category: 'pantry' },
-      { id: uid(), name: 'Salt', category: 'spices' },
-      { id: uid(), name: 'Garlic', category: 'produce' }
-    ],
-    boughtExtras: [], // manual shopping additions: { id, name, category, checked }
-    checked: {}, // ingredient-name(lowercased) -> true when ticked off
-    starterPackAdded: true, // fresh installs already have the starter recipes
-    // every built-in name this install has been offered — so future additions
-    // can flow in while deletions still stick (see migrate)
-    starterNamesAdded: STARTER_RECIPES.map((t) => t.name.trim().toLowerCase())
-  }
+  return JSON.parse(JSON.stringify(DEFAULT_DATA))
 }
 
 // turn a starter-recipe template into a real cookbook recipe (fresh ids)
