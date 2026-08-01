@@ -156,7 +156,10 @@ export function seed() {
     ],
     boughtExtras: [], // manual shopping additions: { id, name, category, checked }
     checked: {}, // ingredient-name(lowercased) -> true when ticked off
-    starterPackAdded: true // fresh installs already have the starter recipes
+    starterPackAdded: true, // fresh installs already have the starter recipes
+    // every built-in name this install has been offered — so future additions
+    // can flow in while deletions still stick (see migrate)
+    starterNamesAdded: STARTER_RECIPES.map((t) => t.name.trim().toLowerCase())
   }
 }
 
@@ -210,15 +213,24 @@ function migrate(data) {
     if (typeof r.knowHow !== 'boolean') r.knowHow = false
   }
 
-  // one-time: add any starter recipes that aren't already in the cookbook.
-  // Guarded by a flag so recipes the user deletes don't come back.
-  if (!data.starterPackAdded) {
-    const have = new Set(data.recipes.map((r) => (r.name || '').trim().toLowerCase()))
-    for (const t of STARTER_RECIPES) {
-      if (!have.has(t.name.trim().toLowerCase())) data.recipes.push(materialize(t))
-    }
-    data.starterPackAdded = true
+  // Add any built-in recipe this install has never been offered before. We track
+  // the offered names in `starterNamesAdded`, so newly-shipped recipes flow into
+  // existing cookbooks while ones the user has deleted stay gone.
+  // Legacy installs (flag set, no list yet) are treated as having already been
+  // offered the original 19 healthy starters — so only genuinely-new built-ins add.
+  if (!Array.isArray(data.starterNamesAdded)) {
+    data.starterNamesAdded = data.starterPackAdded ? [...HEALTHY_SEED_NAMES] : []
   }
+  const offered = new Set(data.starterNamesAdded.map((n) => (n || '').toLowerCase()))
+  const have = new Set(data.recipes.map((r) => (r.name || '').trim().toLowerCase()))
+  for (const t of STARTER_RECIPES) {
+    const key = t.name.trim().toLowerCase()
+    if (offered.has(key)) continue // already offered once — respect deletions
+    if (!have.has(key)) data.recipes.push(materialize(t))
+    offered.add(key)
+  }
+  data.starterNamesAdded = [...offered]
+  data.starterPackAdded = true
   return data
 }
 
@@ -230,7 +242,8 @@ export const store = reactive({
   pantry: [],
   boughtExtras: [],
   checked: {},
-  starterPackAdded: false
+  starterPackAdded: false,
+  starterNamesAdded: []
 })
 
 /* ---------- backup & restore ---------- */
@@ -258,6 +271,7 @@ export function restoreData(data) {
   store.boughtExtras = data.boughtExtras || []
   store.checked = data.checked || {}
   store.starterPackAdded = data.starterPackAdded !== false
+  store.starterNamesAdded = data.starterNamesAdded || []
 }
 
 /* ---------- recipe actions ---------- */
