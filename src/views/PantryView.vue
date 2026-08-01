@@ -1,6 +1,6 @@
 <script setup>
 import { ref, computed } from 'vue'
-import { store, CATEGORIES, catInfo, slotInfo, addPantry, removePantry, suggestFromPantry, inPantry, addExtra } from '../store.js'
+import { store, CATEGORIES, catInfo, slotInfo, addPantry, removePantry, suggestFromPantry, inPantry, addExtra, SUGGESTED_ITEMS, suggestedCategoryFor } from '../store.js'
 import { toast } from '../toast.js'
 import Modal from '../components/Modal.vue'
 
@@ -10,7 +10,7 @@ const viewing = ref(null) // a suggestion object
 
 function submit() {
   if (!name.value.trim()) return
-  addPantry(name.value, cat.value)
+  addPantry(name.value, suggestedCategoryFor(name.value) || cat.value)
   name.value = ''
 }
 
@@ -47,7 +47,10 @@ function addMissingToShopping(sug) {
     </header>
 
     <div class="add card">
-      <input class="bare" v-model="name" placeholder="Add a staple (olive oil, salt, rice…)" @keyup.enter="submit" />
+      <input class="bare" v-model="name" list="pantry-suggestions" placeholder="Add a staple (start typing — olive oil, rice…)" @keyup.enter="submit" />
+      <datalist id="pantry-suggestions">
+        <option v-for="i in SUGGESTED_ITEMS" :key="i.name" :value="i.name" />
+      </datalist>
       <select class="select cat-select" v-model="cat">
         <option v-for="c in CATEGORIES" :key="c.key" :value="c.key">{{ c.emoji }} {{ c.label }}</option>
       </select>

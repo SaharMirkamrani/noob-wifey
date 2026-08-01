@@ -4,7 +4,7 @@ import {
   store, CATEGORIES, catInfo, MEALS,
   startOfWeek, addDays, buildShoppingList,
   toggleChecked, isChecked, addExtra, removeExtra, addPantry,
-  PRIORITY_META, priorityRank
+  PRIORITY_META, priorityRank, SUGGESTED_ITEMS, suggestedCategoryFor, inPantry
 } from '../store.js'
 
 const prio = (p) => PRIORITY_META[p] || PRIORITY_META.medium
@@ -62,14 +62,27 @@ function tick(item) {
   }
 }
 
-// add extra
+// add extra — with suggestions + auto category
 const newExtra = ref('')
 const newExtraCat = ref('other')
+function addItem(name, category) {
+  addExtra(name, category || suggestedCategoryFor(name) || newExtraCat.value)
+}
 function submitExtra() {
   if (!newExtra.value.trim()) return
-  addExtra(newExtra.value, newExtraCat.value)
+  addItem(newExtra.value)
   newExtra.value = ''
 }
+
+// names already on the list or in the pantry (so we don't suggest them again)
+const onList = computed(() => {
+  const s = new Set(store.boughtExtras.map((e) => e.name.toLowerCase()))
+  for (const i of fromRecipes.value) s.add(i.name.toLowerCase())
+  return s
+})
+const quickAdd = computed(() =>
+  SUGGESTED_ITEMS.filter((i) => !onList.value.has(i.name.toLowerCase()) && !inPantry(i.name)).slice(0, 10)
+)
 
 // "I already have this" -> move to pantry
 function moveToPantry(item) {
@@ -111,11 +124,28 @@ function moveToPantry(item) {
 
     <!-- add extra -->
     <div class="add-extra card">
-      <input class="bare" v-model="newExtra" placeholder="Add something extra (milk, snacks…)" @keyup.enter="submitExtra" />
+      <input
+        class="bare"
+        v-model="newExtra"
+        list="grocery-suggestions"
+        placeholder="Add something (start typing — e.g. milk, rice…)"
+        @keyup.enter="submitExtra"
+      />
+      <datalist id="grocery-suggestions">
+        <option v-for="i in SUGGESTED_ITEMS" :key="i.name" :value="i.name" />
+      </datalist>
       <select class="select cat-select" v-model="newExtraCat">
         <option v-for="c in CATEGORIES" :key="c.key" :value="c.key">{{ c.emoji }} {{ c.label }}</option>
       </select>
       <button class="btn btn-primary" @click="submitExtra">Add</button>
+    </div>
+
+    <!-- quick-add suggestions (common items you don't already have) -->
+    <div v-if="quickAdd.length" class="quick-add">
+      <span class="qa-label">Quick add:</span>
+      <button v-for="i in quickAdd" :key="i.name" class="qa-chip" @click="addItem(i.name, i.category)">
+        ＋ {{ i.name }}
+      </button>
     </div>
 
     <div v-if="grouped.length" class="aisles">
@@ -192,7 +222,14 @@ function moveToPantry(item) {
 .bar { height: 8px; border-radius: 999px; background: var(--cream-2); overflow: hidden; }
 .bar-fill { height: 100%; border-radius: 999px; background: linear-gradient(90deg, var(--sage), #a3b393); transition: width 0.4s ease; }
 
-.add-extra { display: flex; gap: 8px; padding: 8px 10px; margin-bottom: 18px; align-items: center; }
+.add-extra { display: flex; gap: 8px; padding: 8px 10px; margin-bottom: 12px; align-items: center; }
+.quick-add { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-bottom: 18px; }
+.qa-label { font-size: 0.78rem; font-weight: 800; color: var(--ink-soft); margin-right: 2px; }
+.qa-chip {
+  font-size: 0.78rem; font-weight: 700; padding: 5px 11px; border-radius: 999px;
+  background: var(--cream-2); color: var(--ink); border: 1px solid var(--line); transition: all 0.15s ease;
+}
+.qa-chip:hover { background: var(--terracotta-tint); color: var(--terracotta); border-color: var(--terracotta-soft); }
 .bare { flex: 1; border: none; background: none; outline: none; font-size: 0.95rem; padding-left: 6px; }
 .cat-select { width: auto; padding: 8px 10px; font-size: 0.85rem; }
 

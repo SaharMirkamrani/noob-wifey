@@ -311,6 +311,62 @@ export function removePantry(id) {
 const normalize = (s) => s.trim().toLowerCase()
 export const inPantry = (name) => store.pantry.some((p) => normalize(p.name) === normalize(name))
 
+// common grocery items suggested when adding to the shopping list or pantry.
+// Picking one auto-fills its aisle so you don't have to choose a category.
+export const SUGGESTED_ITEMS = [
+  // produce
+  { name: 'Onion', category: 'produce' }, { name: 'Garlic', category: 'produce' },
+  { name: 'Potatoes', category: 'produce' }, { name: 'Tomatoes', category: 'produce' },
+  { name: 'Cucumber', category: 'produce' }, { name: 'Mushrooms', category: 'produce' },
+  { name: 'Avocado', category: 'produce' }, { name: 'Lemon', category: 'produce' },
+  { name: 'Lime', category: 'produce' }, { name: 'Bell pepper', category: 'produce' },
+  { name: 'Carrots', category: 'produce' }, { name: 'Spinach', category: 'produce' },
+  { name: 'Broccoli', category: 'produce' }, { name: 'Zucchini', category: 'produce' },
+  { name: 'Banana', category: 'produce' }, { name: 'Berries', category: 'produce' },
+  { name: 'Ginger', category: 'produce' }, { name: 'Parsley', category: 'produce' },
+  { name: 'Green onion', category: 'produce' },
+  // meat & fish
+  { name: 'Chicken breast', category: 'meat' }, { name: 'Chicken thighs', category: 'meat' },
+  { name: 'Ground meat', category: 'meat' }, { name: 'Ground turkey', category: 'meat' },
+  { name: 'Salmon', category: 'meat' }, { name: 'Shrimp', category: 'meat' },
+  // dairy & eggs
+  { name: 'Milk', category: 'dairy' }, { name: 'Eggs', category: 'dairy' },
+  { name: 'Butter', category: 'dairy' }, { name: 'Greek yogurt', category: 'dairy' },
+  { name: 'Cheese', category: 'dairy' }, { name: 'Feta', category: 'dairy' },
+  { name: 'Parmesan', category: 'dairy' }, { name: 'Cottage cheese', category: 'dairy' },
+  { name: 'Cream', category: 'dairy' },
+  // bakery
+  { name: 'Bread', category: 'bakery' }, { name: 'Whole grain bread', category: 'bakery' },
+  { name: 'Wraps', category: 'bakery' }, { name: 'Tortillas', category: 'bakery' },
+  // pantry & dry
+  { name: 'Pasta', category: 'pantry' }, { name: 'Rice', category: 'pantry' },
+  { name: 'Brown rice', category: 'pantry' }, { name: 'Lentils', category: 'pantry' },
+  { name: 'Flour', category: 'pantry' }, { name: 'Oats', category: 'pantry' },
+  { name: 'Almonds', category: 'pantry' }, { name: 'Walnuts', category: 'pantry' },
+  { name: 'Cashews', category: 'pantry' }, { name: 'Granola', category: 'pantry' },
+  { name: 'Cocoa powder', category: 'pantry' }, { name: 'Vanilla powder', category: 'pantry' },
+  { name: 'Chia seeds', category: 'pantry' }, { name: 'Canned tuna', category: 'pantry' },
+  { name: 'Canned peas', category: 'pantry' }, { name: 'Canned corn', category: 'pantry' },
+  { name: 'Chickpeas', category: 'pantry' }, { name: 'Black beans', category: 'pantry' },
+  { name: 'Coconut milk', category: 'pantry' }, { name: 'Teriyaki sauce', category: 'pantry' },
+  { name: 'Soy sauce', category: 'pantry' }, { name: 'Mayonnaise', category: 'pantry' },
+  { name: 'Honey', category: 'pantry' }, { name: 'Peanut butter', category: 'pantry' },
+  { name: 'Olive oil', category: 'pantry' }, { name: 'Tahini', category: 'pantry' },
+  { name: 'Tomato paste', category: 'pantry' },
+  // spices
+  { name: 'Salt', category: 'spices' }, { name: 'Black pepper', category: 'spices' },
+  { name: 'Turmeric', category: 'spices' }, { name: 'Paprika', category: 'spices' },
+  { name: 'Cumin', category: 'spices' }, { name: 'Cinnamon', category: 'spices' },
+  { name: 'Garlic powder', category: 'spices' }, { name: 'Oregano', category: 'spices' },
+  { name: 'Chili flakes', category: 'spices' }, { name: 'Taco seasoning', category: 'spices' },
+  // frozen
+  { name: 'Frozen peas', category: 'frozen' }, { name: 'Frozen berries', category: 'frozen' }
+]
+export const suggestedCategoryFor = (name) => {
+  const m = SUGGESTED_ITEMS.find((i) => normalize(i.name) === normalize(name))
+  return m ? m.category : null
+}
+
 // suggest recipes based on what's in the pantry — ranked by how much you already have
 export function suggestFromPantry() {
   const have = new Set(store.pantry.map((p) => normalize(p.name)))
