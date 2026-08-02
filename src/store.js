@@ -2,6 +2,11 @@ import { reactive } from 'vue'
 import { STARTER_RECIPES } from './starterRecipes.js'
 import { DEFAULT_DATA } from './defaultData.js'
 
+// Bump whenever the built-in default cookbook changes. An install that's still on
+// the untouched default and behind this version upgrades itself to the new
+// default (see migrate); personalized installs are left untouched.
+export const DATA_VERSION = 2
+
 /* ---------- ingredient categories (grocery aisles) ---------- */
 export const CATEGORIES = [
   { key: 'produce', label: 'Produce', emoji: '🥬' },
@@ -99,7 +104,9 @@ export const addDays = (d, n) => {
  * to keep the bundle light). We return a deep clone so callers can mutate the
  * result freely without touching the shared constant. */
 export function seed() {
-  return JSON.parse(JSON.stringify(DEFAULT_DATA))
+  const d = JSON.parse(JSON.stringify(DEFAULT_DATA))
+  d.dataVersion = DATA_VERSION
+  return d
 }
 
 // turn a starter-recipe template into a real cookbook recipe (fresh ids)
@@ -139,6 +146,26 @@ const HEALTHY_SEED_NAMES = new Set(
 
 function migrate(data) {
   if (!Array.isArray(data.recipes)) return data
+
+  // One-time upgrade: if this install is still the untouched built-in default and
+  // is behind the current default version, refresh it to the new default cookbook.
+  // Personalized installs — own recipes, a meal plan, ticked items, or saved
+  // photos — are left exactly as they are; only a pristine default gets replaced.
+  if (data.dataVersion !== DATA_VERSION) {
+    const defaultNames = new Set(DEFAULT_DATA.recipes.map((r) => (r.name || '').trim().toLowerCase()))
+    const pristine =
+      Object.keys(data.plan || {}).length === 0 &&
+      (data.boughtExtras || []).length === 0 &&
+      !Object.values(data.checked || {}).some(Boolean) &&
+      !data.recipes.some((r) => r.image && r.image.length > 50) &&
+      data.recipes.every((r) => defaultNames.has((r.name || '').trim().toLowerCase()))
+    if (pristine) {
+      const fresh = seed()
+      for (const k of Object.keys(data)) delete data[k]
+      Object.assign(data, fresh)
+    }
+    data.dataVersion = DATA_VERSION
+  }
 
   // backfill fields added after these recipes were first saved
   for (const r of data.recipes) {
@@ -182,7 +209,8 @@ export const store = reactive({
   boughtExtras: [],
   checked: {},
   starterPackAdded: false,
-  starterNamesAdded: []
+  starterNamesAdded: [],
+  dataVersion: 0
 })
 
 /* ---------- backup & restore ---------- */
@@ -211,6 +239,7 @@ export function restoreData(data) {
   store.checked = data.checked || {}
   store.starterPackAdded = data.starterPackAdded !== false
   store.starterNamesAdded = data.starterNamesAdded || []
+  store.dataVersion = data.dataVersion || DATA_VERSION
 }
 
 /* ---------- recipe actions ---------- */
