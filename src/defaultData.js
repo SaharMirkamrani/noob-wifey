@@ -3693,6 +3693,126 @@ export const DEFAULT_DATA = {
         "Bake at 180°C / 350°F for 12–15 min — don’t overbake, so the middles stay fudgy.",
         "Cool briefly before serving."
       ]
+    },
+    {
+      "id": "8gcsokxtjg",
+      "name": "Summer Chicken & Potato Salad",
+      "emoji": "🥗",
+      "image": "",
+      "igLink": "https://www.instagram.com/p/DbgN_gJIF1L/",
+      "servings": 4,
+      "minutes": 30,
+      "healthy": true,
+      "slot": "main",
+      "mealPrep": true,
+      "knowHow": false,
+      "tags": [
+        "main",
+        "salad",
+        "high-protein",
+        "from-instagram"
+      ],
+      "ingredients": [
+        {
+          "name": "Chicken breast",
+          "qty": "1",
+          "unit": "",
+          "category": "meat",
+          "id": "myes0mytjg"
+        },
+        {
+          "name": "Potatoes",
+          "qty": "4",
+          "unit": "",
+          "category": "produce",
+          "id": "vii28dotjg"
+        },
+        {
+          "name": "Lemon",
+          "qty": "1",
+          "unit": "",
+          "category": "produce",
+          "id": "s76nmt9tjg"
+        },
+        {
+          "name": "Walnuts",
+          "qty": "50",
+          "unit": "g",
+          "category": "pantry",
+          "id": "9vt7sb8tjg"
+        },
+        {
+          "name": "Pitted olives",
+          "qty": "100",
+          "unit": "g",
+          "category": "pantry",
+          "id": "myb7h8btjg"
+        },
+        {
+          "name": "Pickled cucumbers",
+          "qty": "5",
+          "unit": "",
+          "category": "pantry",
+          "id": "odul8fhtjg"
+        },
+        {
+          "name": "Icelandic yogurt (skyr)",
+          "qty": "4",
+          "unit": "tbsp",
+          "category": "dairy",
+          "id": "hrfccs2tjg"
+        },
+        {
+          "name": "Mustard",
+          "qty": "1",
+          "unit": "tbsp",
+          "category": "pantry",
+          "id": "l58ms30tjg"
+        },
+        {
+          "name": "Diet mayonnaise",
+          "qty": "2",
+          "unit": "tbsp",
+          "category": "pantry",
+          "id": "riamkrbtjg"
+        },
+        {
+          "name": "Fresh dill",
+          "qty": "2",
+          "unit": "tbsp",
+          "category": "produce",
+          "id": "2a9t444tjg"
+        },
+        {
+          "name": "Pickle juice",
+          "qty": "2",
+          "unit": "tbsp",
+          "category": "pantry",
+          "id": "ctirbpttjg"
+        },
+        {
+          "name": "Salt",
+          "qty": "",
+          "unit": "",
+          "category": "spices",
+          "id": "cagcdautjg"
+        },
+        {
+          "name": "Black pepper",
+          "qty": "",
+          "unit": "",
+          "category": "spices",
+          "id": "euata4vtjg"
+        }
+      ],
+      "steps": [
+        "Season the chicken breast with lemon, salt and pepper, then cook (poach or pan-cook) until done; cool and dice or shred.",
+        "Boil or steam the potatoes until tender; cool and dice.",
+        "Chop the pickled cucumbers, olives and walnuts.",
+        "Whisk the dressing: yogurt, mustard, mayo, dill, pickle juice, salt and pepper.",
+        "Fold everything together, chill, and serve cold. 🥗",
+        "Note: the post listed ingredients but kept the method in its video — these steps are a standard version, tweak to match."
+      ]
     }
   ],
   "plan": {
