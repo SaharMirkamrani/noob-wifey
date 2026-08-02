@@ -5,6 +5,7 @@ import { store, MEALS, isoDay, startOfWeek, addDays, getRecipe, buildShoppingLis
 const navigate = inject('navigate')
 const openSettings = inject('openSettings')
 const breadOpen = ref(false)
+const sourOpen = ref(false)
 const today = new Date()
 const hour = today.getHours()
 const greeting = computed(() => {
@@ -125,46 +126,95 @@ const stats = computed(() => [
       </button>
     </div>
 
-    <!-- bread day tutorial -->
-    <section class="bread card">
-      <button class="bread-head" @click="breadOpen = !breadOpen">
-        <span class="bread-emoji">🍞</span>
-        <span class="bread-title">
-          <span class="bread-h">Bread day — easy yeast loaf</span>
-          <span class="bread-sub">No sourdough starter needed. Crusty bakery loaf from your oven.</span>
-        </span>
-        <span class="bread-chev" :class="{ open: breadOpen }">⌄</span>
-      </button>
+    <!-- bread tutorials -->
+    <div class="breads">
+      <!-- easy yeast loaf -->
+      <section class="bread card">
+        <button class="bread-head" @click="breadOpen = !breadOpen">
+          <span class="bread-emoji">🍞</span>
+          <span class="bread-title">
+            <span class="bread-h">Bread day — easy yeast loaf</span>
+            <span class="bread-sub">No sourdough starter needed. Crusty bakery loaf from your oven.</span>
+          </span>
+          <span class="bread-chev" :class="{ open: breadOpen }">⌄</span>
+        </button>
 
-      <div v-if="breadOpen" class="bread-body">
-        <p class="bread-intro">You have yeast, so skip the week-long sourdough starter — a packet of yeast rises this dough in a couple of hours. It's the most forgiving bread there is. 🤍</p>
+        <div v-if="breadOpen" class="bread-body">
+          <p class="bread-intro">You have yeast, so skip the week-long sourdough starter — a packet of yeast rises this dough in a couple of hours. It's the most forgiving bread there is. 🤍</p>
 
-        <h4>🧺 What you need</h4>
-        <ul class="bread-list">
-          <li><strong>3 cups</strong> bread flour (or all-purpose)</li>
-          <li><strong>½ tsp</strong> instant yeast</li>
-          <li><strong>1½ tsp</strong> salt</li>
-          <li><strong>1½ cups</strong> warm water</li>
-          <li>A <strong>lidded pot</strong> (Dutch oven / oven-safe pot) — the lid traps steam for the crackly crust</li>
-        </ul>
+          <h4>🧺 What you need</h4>
+          <ul class="bread-list">
+            <li><strong>3 cups</strong> bread flour (or all-purpose)</li>
+            <li><strong>½ tsp</strong> instant yeast</li>
+            <li><strong>1½ tsp</strong> salt</li>
+            <li><strong>1½ cups</strong> warm water</li>
+            <li>A <strong>lidded pot</strong> (Dutch oven / oven-safe pot) — the lid traps steam for the crackly crust</li>
+          </ul>
 
-        <h4>👩‍🍳 The rhythm</h4>
-        <ol class="bread-steps">
-          <li><strong>Mix (2 min):</strong> stir flour, yeast, salt and water into a shaggy, sticky dough. No kneading.</li>
-          <li><strong>Rise (overnight):</strong> cover the bowl, leave on the counter 12–18 h until bubbly and doubled.</li>
-          <li><strong>Shape (2 min):</strong> tip onto floured counter, fold into a rough ball, rest 30 min.</li>
-          <li><strong>Heat the pot:</strong> put the empty lidded pot in the oven, preheat to 230°C / 450°F.</li>
-          <li><strong>Bake:</strong> drop the dough into the hot pot, lid <em>on</em> 30 min → lid <em>off</em> 12–15 min until deep golden and hollow-sounding.</li>
-          <li><strong>Wait:</strong> cool before slicing (hardest step 😅).</li>
-        </ol>
+          <h4>👩‍🍳 The rhythm</h4>
+          <ol class="bread-steps">
+            <li><strong>Mix (2 min):</strong> stir flour, yeast, salt and water into a shaggy, sticky dough. No kneading.</li>
+            <li><strong>Rise (overnight):</strong> cover the bowl, leave on the counter 12–18 h until bubbly and doubled.</li>
+            <li><strong>Shape (2 min):</strong> tip onto floured counter, fold into a rough ball, rest 30 min.</li>
+            <li><strong>Heat the pot:</strong> put the empty lidded pot in the oven, preheat to 230°C / 450°F.</li>
+            <li><strong>Bake:</strong> drop the dough into the hot pot, lid <em>on</em> 30 min → lid <em>off</em> 12–15 min until deep golden and hollow-sounding.</li>
+            <li><strong>Wait:</strong> cool before slicing (hardest step 😅).</li>
+          </ol>
 
-        <div class="bread-tips">
-          💡 <strong>Beginner wins:</strong> use a scale if you have one, a cold kitchen just means a longer rise (not a fail), and loaf #2–3 is where it really clicks.
+          <div class="bread-tips">
+            💡 <strong>Beginner wins:</strong> use a scale if you have one, a cold kitchen just means a longer rise (not a fail), and loaf #2–3 is where it really clicks.
+          </div>
+
+          <button class="btn btn-soft bread-cta" @click="navigate('plan')">🍞 It's saved as “No-Knead Dutch Oven Bread” → plan it</button>
         </div>
+      </section>
 
-        <button class="btn btn-soft bread-cta" @click="navigate('plan')">🍞 It's saved as “No-Knead Dutch Oven Bread” → plan it</button>
-      </div>
-    </section>
+      <!-- sourdough, the slow one -->
+      <section class="bread sour card">
+        <button class="bread-head" @click="sourOpen = !sourOpen">
+          <span class="bread-emoji">🥖</span>
+          <span class="bread-title">
+            <span class="bread-h">Sourdough — the slow, tangy one</span>
+            <span class="bread-sub">A living starter instead of yeast. A weekend ritual.</span>
+          </span>
+          <span class="bread-chev" :class="{ open: sourOpen }">⌄</span>
+        </button>
+
+        <div v-if="sourOpen" class="bread-body">
+          <p class="bread-intro">Sourdough rises on a <strong>starter</strong> you grow yourself — a little jar of fermented flour &amp; water full of wild yeast. No packet yeast at all. More effort and about a week to get going, but you get that tangy flavour and chewy, crackly crust. 🫙</p>
+
+          <h4>🧺 What you need</h4>
+          <ul class="bread-list">
+            <li><strong>Flour</strong> — bread or all-purpose; a little <strong>whole wheat or rye</strong> wakes a new starter faster</li>
+            <li><strong>Water</strong> — filtered, or tap left out overnight (chlorine slows it)</li>
+            <li><strong>Salt</strong></li>
+            <li>A <strong>jar + a kitchen scale</strong> — sourdough is weighed, not cupped</li>
+            <li>A <strong>lidded pot</strong> — same as the yeast loaf; the steam makes the crust</li>
+          </ul>
+
+          <h4>🫙 Step 1 — Raise a starter (~1 week, 2 min/day)</h4>
+          <ol class="bread-steps">
+            <li><strong>Day 1:</strong> mix 50 g flour + 50 g water in the jar, lid resting on loosely.</li>
+            <li><strong>Each day after:</strong> discard most of it, feed 50 g flour + 50 g water.</li>
+            <li><strong>Day 5–7:</strong> when it doubles a few hours after feeding and smells pleasantly sour, it's alive and ready. <em>(Or beg a spoonful from a baker friend and skip the week.)</em></li>
+          </ol>
+
+          <h4>👩‍🍳 Step 2 — Bake a loaf</h4>
+          <ol class="bread-steps">
+            <li><strong>Feed &amp; wait:</strong> morning feed, then wait 4–6 h until bubbly and doubled.</li>
+            <li><strong>Mix:</strong> starter + flour + water + salt → shaggy dough. Rest 30 min.</li>
+            <li><strong>Stretch &amp; fold</strong> 3–4× over ~2 h (30 sec each — builds strength, no kneading).</li>
+            <li><strong>Bulk rise</strong> 4–8 h until puffy and jiggly.</li>
+            <li><strong>Shape,</strong> then cold-proof in the fridge overnight — easier to handle and more flavour.</li>
+            <li><strong>Bake</strong> next day in the hot pot: lid <em>on</em> 20 min → lid <em>off</em> 20 min.</li>
+          </ol>
+
+          <div class="bread-tips">
+            💡 <strong>Beginner wins:</strong> weigh everything, warmth speeds fermentation (cold just means slower, not failure), and the "discard" isn't trash — save it for pancakes. First loaf will be a bit dense; loaf #3–4 is where it clicks.
+          </div>
+        </div>
+      </section>
+    </div>
 
     <!-- quick actions -->
     <div class="quick">
@@ -225,12 +275,16 @@ const stats = computed(() => [
 .stat-value { font-family: var(--font-head); font-weight: 700; font-size: 1.25rem; color: var(--terracotta); }
 .stat-label { font-size: 0.68rem; color: var(--ink-soft); font-weight: 700; }
 
-/* bread day tutorial */
-.bread { padding: 0; margin-bottom: 14px; overflow: hidden; }
+/* bread tutorials */
+.breads { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px; align-items: start; }
+.bread { padding: 0; overflow: hidden; }
 .bread-head {
   width: 100%; display: flex; align-items: center; gap: 12px; padding: 14px 16px; text-align: left;
   background: linear-gradient(135deg, var(--card), #f6e7cf);
 }
+/* sourdough card themed sage to set it apart from the yeast loaf */
+.bread.sour .bread-head { background: linear-gradient(135deg, var(--card), var(--sage-tint)); }
+.bread.sour .bread-steps li::before { background: var(--sage-tint); color: #5f6e51; }
 .bread-emoji { font-size: 1.7rem; flex-shrink: 0; }
 .bread-title { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
 .bread-h { font-family: var(--font-head); font-weight: 600; font-size: 1.05rem; }
@@ -260,6 +314,7 @@ const stats = computed(() => [
 
 @media (max-width: 700px) {
   .cols { grid-template-columns: 1fr; }
+  .breads { grid-template-columns: 1fr; }
   .stats { grid-template-columns: repeat(2, 1fr); }
   .hero-text h1 { font-size: 1.6rem; }
   .hero-emoji { font-size: 3rem; }
