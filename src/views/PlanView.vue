@@ -2,7 +2,7 @@
 import { ref, computed, inject } from 'vue'
 import {
   store, MEALS, slotInfo, isoDay, startOfWeek, addDays,
-  setMeal, getRecipe, deleteRecipe, plannedRecipesForWeek
+  setMeal, getRecipe, deleteRecipe, plannedRecipesForWeek, inPantry, isChecked
 } from '../store.js'
 import { toast } from '../toast.js'
 import RecipeForm from '../components/RecipeForm.vue'
@@ -27,6 +27,14 @@ const slotGradient = (slot) => ({
   main: 'linear-gradient(145deg, #f7dccf, #e0a487)',
   snack: 'linear-gradient(145deg, #fde7c0, #f0c069)'
 }[slot] || 'linear-gradient(145deg, var(--cream-2), var(--terracotta-tint))')
+
+// an ingredient counts as "got it" if it's a pantry staple or ticked off shopping
+const haveIng = (name) => inPantry(name) || isChecked(name)
+const viewingHave = computed(() => {
+  if (!viewing.value) return { have: 0, total: 0 }
+  const ings = viewing.value.ingredients.filter((i) => i.name && i.name.trim())
+  return { have: ings.filter((i) => haveIng(i.name)).length, total: ings.length }
+})
 
 const filtered = computed(() => {
   const q = search.value.trim().toLowerCase()
@@ -310,13 +318,20 @@ const isHot = (iso, mealKey) => dropKey.value === `${iso}|${mealKey}`
           <span class="chip time">🍽️ {{ viewing.servings }} servings</span>
           <a v-if="viewing.igLink" :href="viewing.igLink" target="_blank" rel="noopener" class="chip ig">📷 Instagram</a>
         </div>
-        <h4>🧺 Ingredients</h4>
+        <div class="ing-head">
+          <h4>🧺 Ingredients</h4>
+          <span v-if="viewingHave.total" class="have-count" :class="{ allset: viewingHave.have === viewingHave.total }">
+            {{ viewingHave.have }}/{{ viewingHave.total }} on hand
+          </span>
+        </div>
         <ul class="ing-list">
-          <li v-for="ing in viewing.ingredients" :key="ing.id">
+          <li v-for="ing in viewing.ingredients" :key="ing.id" :class="{ got: haveIng(ing.name) }">
+            <span class="ing-mark">{{ haveIng(ing.name) ? '✓' : '🛒' }}</span>
             <strong>{{ ing.name }}</strong>
             <span v-if="ing.qty" class="qty">{{ ing.qty }} {{ ing.unit }}</span>
           </li>
         </ul>
+        <p class="ing-hint">✓ = already in your pantry or ticked off your shopping list</p>
         <template v-if="viewing.steps && viewing.steps.length">
           <h4>👩‍🍳 Method</h4>
           <ol class="step-list">
@@ -502,10 +517,18 @@ const isHot = (iso, mealKey) => dropKey.value === `${iso}|${mealKey}`
 .chip.slot.snack { background: var(--honey); color: #fff; }
 .chip.ig { background: #f3e3f0; color: #a4508a; text-decoration: none; }
 .detail h4 { font-family: var(--font-head); margin: 18px 0 10px; font-size: 1.15rem; }
+.ing-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 18px 0 10px; }
+.ing-head h4 { margin: 0; }
+.have-count { font-size: 0.72rem; font-weight: 800; padding: 3px 10px; border-radius: 999px; background: var(--cream-2); color: var(--ink-soft); white-space: nowrap; }
+.have-count.allset { background: var(--sage); color: #fff; }
 .ing-list { list-style: none; display: flex; flex-direction: column; gap: 2px; }
-.ing-list li { display: flex; justify-content: space-between; align-items: center; padding: 9px 12px; border-radius: 10px; }
+.ing-list li { display: flex; align-items: center; gap: 10px; padding: 9px 12px; border-radius: 10px; }
 .ing-list li:nth-child(odd) { background: var(--cream-2); }
-.ing-list .qty { color: var(--ink-soft); font-weight: 700; font-size: 0.88rem; }
+.ing-mark { width: 18px; text-align: center; font-weight: 800; font-size: 0.8rem; flex-shrink: 0; }
+.ing-list li.got .ing-mark { color: var(--sage); }
+.ing-list li.got strong { color: var(--ink-soft); text-decoration: line-through; text-decoration-color: var(--sage); }
+.ing-list .qty { margin-left: auto; color: var(--ink-soft); font-weight: 700; font-size: 0.88rem; }
+.ing-hint { color: var(--ink-soft); font-weight: 600; font-size: 0.74rem; margin-top: 8px; }
 .step-list { padding-left: 4px; list-style: none; counter-reset: s; display: flex; flex-direction: column; gap: 12px; }
 .step-list li { position: relative; padding-left: 40px; counter-increment: s; }
 .step-list li::before {
